@@ -3,47 +3,35 @@
 
     const categories = [
         {
-            name: 'Cars',
-            image: '/images/car.jfif',
-            description: 'Find your next car'
+            name: 'Fiction',
+            image: '/images/fiction.jpg',
+            description: 'Novels, stories and literature'
         },
         {
-            name: 'Mobile',
-            image: '/images/mobile.jfif',
-            description: 'Smartphones and mobile devices'
+            name: 'Business',
+            image: '/images/business.jpg',
+            description: 'Business, money and entrepreneurship'
         },
         {
-            name: 'Electronics',
-            image: '/images/electronics.jfif',
-            description: 'Computers, TVs and electronics'
+            name: 'Technology',
+            image: '/images/technology.jfif',
+            description: 'Programming, AI and technology'
         }
     ];
 
-    /**
-     * @param {string} category
-     */
-   function chooseCategory(category) {
-    if (category === 'Cars') {
-        window.location.href = '/cars';
-    }
+    function searchBooks() {
+        if (!search.trim()) return;
 
-    if (category === 'Mobile') {
-        window.location.href = '/mobile';
+        window.location.href =
+            `/books?search=${encodeURIComponent(search.trim())}`;
     }
-
-    if (category === 'Electronics') {
-        window.location.href = '/electronics';
-    }
-}
-                
-  
 </script>
 
 <svelte:head>
-    <title>4KAZ Marketplace</title>
+    <title>4KAZ Books | Online Bookstore</title>
     <meta
         name="description"
-        content="Buy and sell cars, mobile phones and electronics on 4KAZ Marketplace."
+        content="Discover and buy books from 4KAZ Books."
     />
 </svelte:head>
 
@@ -51,90 +39,92 @@
     <div class="brand">
         <img
             src="/images/ethioz logo.jpg"
-            alt="4KAZ Marketplace Logo"
+            alt="4KAZ Books"
             class="logo"
         />
 
-        <a href="/" class="company-name">4KAZ</a>
+        <a href="/" class="company-name">4KAZ BOOKS</a>
     </div>
 
     <nav>
-        <a href="#home">Home</a>
-        <a href="#categories">Marketplace</a>
+        <a href="/">Home</a>
+        <a href="/books">Books</a>
+        <a href="#categories">Categories</a>
         <a href="/about">About</a>
         <a href="/contact">Contact</a>
     </nav>
 
     <div class="account">
-        <button class="login">Log in</button>
-        <button class="sell">+ Sell Item</button>
+        <a class="cart" href="/cart">
+            🛒 Cart
+        </a>
     </div>
 </header>
 
 <main>
 
     <!-- HERO -->
-    <section class="hero" id="home">
-        <p class="eyebrow">4KAZ MARKETPLACE</p>
+    <section class="hero">
+
+        <p class="eyebrow">4KAZ ONLINE BOOKSTORE</p>
 
         <h1>
-            FIND.<br />
-            BUY. <span>SELL.</span>
+            READ.<br />
+            LEARN. <span>GROW.</span>
         </h1>
 
         <p class="hero-description">
-            Buy and sell cars, mobile phones and electronics
-            in one marketplace.
+            Discover books that entertain, educate and inspire.
+            Find your next great read at 4KAZ Books.
         </p>
 
-        <div class="search-box">
+        <form
+            class="search-box"
+            onsubmit={(event) => {
+                event.preventDefault();
+                searchBooks();
+            }}
+        >
             <span class="search-icon">⌕</span>
 
             <input
                 bind:value={search}
-                type="text"
-                placeholder="Search cars, phones, electronics..."
+                type="search"
+                placeholder="Search by title, author or category..."
             />
 
-            <button>Search</button>
-        </div>
+            <button type="submit">Search</button>
+        </form>
 
         <div class="popular">
             <span>Popular:</span>
 
-            <button onclick={() => chooseCategory('Cars')}>
-                Cars
-            </button>
-
-            <button onclick={() => chooseCategory('Mobile')}>
-                Mobile
-            </button>
-
-            <button onclick={() => chooseCategory('Electronics')}>
-                Electronics
-            </button>
+            <a href="/books?category=Fiction">Fiction</a>
+            <a href="/books?category=Business">Business</a>
+            <a href="/books?category=Technology">Technology</a>
         </div>
+
     </section>
 
-    <!-- MARKETPLACE -->
-    <section class="marketplace" id="categories">
+    <!-- CATEGORIES -->
+    <section class="books-section" id="categories">
 
         <div class="section-top">
             <div>
                 <p class="eyebrow">EXPLORE</p>
-                <h2>Marketplace</h2>
+                <h2>Book Categories</h2>
             </div>
 
-            <a href="#categories">View all →</a>
+            <a href="/books">View all books →</a>
         </div>
 
-        <!-- CATEGORY CARDS -->
         <div class="category-grid">
 
             {#each categories as category}
-                <button
+
+                <a
                     class="category-card"
-                    onclick={() => chooseCategory(category.name)}
+                    href={`/books?category=${category.name}`}
                 >
                     <img
                         src={category.image}
@@ -144,68 +134,81 @@
                     <div class="overlay"></div>
 
                     <div class="card-content">
-                        <p>SHOP</p>
+                        <p>EXPLORE</p>
+
                         <h3>{category.name}</h3>
-                        <span>{category.description}</span>
+
+                        <span>
+                            {category.description}
+                        </span>
                     </div>
 
                     <div class="arrow">↗</div>
-                </button>
+                </a>
+
             {/each}
 
         </div>
+
     </section>
 
     <!-- ABOUT -->
-    <section class="about" id="about">
+    <section class="about">
+
         <div>
-            <p class="eyebrow light">4KAZ MARKETPLACE</p>
+            <p class="eyebrow light">
+                4KAZ BOOKS
+            </p>
 
             <h2>
-                YOUR MARKET.<br />
-                YOUR CHOICE.
+                FIND YOUR<br />
+                NEXT BOOK.
             </h2>
 
             <p class="about-text">
-                Find cars, smartphones, computers,
-                electronics and more from sellers
-                on 4KAZ Marketplace.
+                From powerful business books to unforgettable
+                fiction and modern technology guides, discover
+                books for every kind of reader.
             </p>
         </div>
 
-        <button class="start-button">
+        <a class="start-button" href="/books">
             Start Shopping →
-        </button>
+        </a>
+
     </section>
 
 </main>
 
-<!-- FOOTER -->
-<footer id="contact">
+<footer>
 
     <div class="footer-brand">
+
         <img
             src="/images/ethioz logo.jpg"
-            alt="4KAZ Marketplace"
+            alt="4KAZ Books"
         />
 
         <div>
             <h2>4KAZ</h2>
-            <p>Marketplace</p>
+            <p>Online Bookstore</p>
         </div>
-    </div>
 
-    <div class="footer-categories">
-        Cars · Mobile · Electronics
     </div>
 
     <div>
-        © 2026 4KAZ Marketplace
+        Fiction · Business · Technology
+    </div>
+
+    <div>
+        © 2026 4KAZ Books
     </div>
 
 </footer>
 
+
 <style>
+
     :global(*) {
         box-sizing: border-box;
     }
@@ -229,6 +232,7 @@
     button {
         cursor: pointer;
     }
+
 
     /* NAVIGATION */
 
@@ -258,7 +262,7 @@
     }
 
     .company-name {
-        font-size: 25px;
+        font-size: 24px;
         font-weight: 900;
         text-decoration: none;
         color: #111;
@@ -267,7 +271,7 @@
 
     nav {
         display: flex;
-        gap: 32px;
+        gap: 28px;
     }
 
     nav a {
@@ -281,27 +285,16 @@
         opacity: 0.5;
     }
 
-    .account {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .login {
-        border: none;
-        background: transparent;
-        font-weight: bold;
-        padding: 14px;
-    }
-
-    .sell {
-        border: none;
+    .cart {
+        display: inline-block;
         background: #191919;
         color: white;
-        padding: 15px 23px;
+        text-decoration: none;
+        padding: 14px 22px;
         border-radius: 8px;
         font-weight: bold;
     }
+
 
     /* HERO */
 
@@ -324,14 +317,14 @@
 
     .hero h1 {
         margin: 0;
-        font-size: clamp(75px, 11vw, 160px);
+        font-size: clamp(70px, 11vw, 155px);
         line-height: 0.8;
         letter-spacing: -8px;
         font-weight: 900;
     }
 
     .hero h1 span {
-        color: #555;
+        color: #666;
     }
 
     .hero-description {
@@ -341,6 +334,7 @@
         line-height: 1.6;
         color: #666;
     }
+
 
     /* SEARCH */
 
@@ -352,7 +346,7 @@
         padding: 9px 9px 9px 20px;
         border-radius: 12px;
         margin-top: 30px;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 15px 50px rgba(0,0,0,0.08);
     }
 
     .search-icon {
@@ -377,8 +371,6 @@
         font-weight: bold;
     }
 
-    /* POPULAR */
-
     .popular {
         margin-top: 20px;
         display: flex;
@@ -389,21 +381,23 @@
         font-size: 12px;
     }
 
-    .popular button {
-        background: transparent;
+    .popular a {
+        color: #111;
+        text-decoration: none;
         border: 1px solid #ccc;
         border-radius: 30px;
         padding: 8px 15px;
     }
 
-    .popular button:hover {
+    .popular a:hover {
         background: #191919;
         color: white;
     }
 
-    /* MARKETPLACE */
 
-    .marketplace {
+    /* BOOK CATEGORIES */
+
+    .books-section {
         background: white;
         padding: 100px 6%;
     }
@@ -416,17 +410,15 @@
     }
 
     .section-top h2 {
-        font-size: clamp(50px, 6vw, 85px);
+        font-size: clamp(45px, 6vw, 80px);
         letter-spacing: -5px;
         margin: 0;
     }
 
-    .section-top a {
+    .section-top > a {
         color: #111;
         font-weight: bold;
     }
-
-    /* CATEGORY CARDS */
 
     .category-grid {
         display: grid;
@@ -438,10 +430,8 @@
         height: 500px;
         position: relative;
         overflow: hidden;
-        border: none;
         border-radius: 15px;
-        padding: 0;
-        text-align: left;
+        text-decoration: none;
         background: #222;
     }
 
@@ -454,7 +444,7 @@
     }
 
     .category-card:hover img {
-        transform: scale(1.08);
+        transform: scale(1.07);
     }
 
     .overlay {
@@ -462,8 +452,8 @@
         inset: 0;
         background: linear-gradient(
             to top,
-            rgba(0, 0, 0, 0.85),
-            rgba(0, 0, 0, 0.05)
+            rgba(0,0,0,0.9),
+            rgba(0,0,0,0.05)
         );
     }
 
@@ -481,7 +471,7 @@
     }
 
     .card-content h3 {
-        font-size: 45px;
+        font-size: 42px;
         margin: 0 0 7px;
         letter-spacing: -2px;
     }
@@ -505,6 +495,7 @@
         border-radius: 50%;
         font-size: 22px;
     }
+
 
     /* ABOUT */
 
@@ -541,12 +532,13 @@
     .start-button {
         background: white;
         color: #111;
-        border: none;
+        text-decoration: none;
         border-radius: 8px;
         padding: 19px 28px;
         font-weight: bold;
         white-space: nowrap;
     }
+
 
     /* FOOTER */
 
@@ -583,19 +575,21 @@
         margin: 3px 0 0;
     }
 
+
     /* MOBILE */
 
     @media (max-width: 850px) {
-        nav {
-            display: none;
-        }
 
-        .login {
+        nav {
             display: none;
         }
 
         .navbar {
             padding: 0 20px;
+        }
+
+        .company-name {
+            font-size: 19px;
         }
 
         .hero {
@@ -615,7 +609,7 @@
             height: 420px;
         }
 
-        .marketplace {
+        .books-section {
             padding: 70px 20px;
         }
 
@@ -641,4 +635,5 @@
             align-items: flex-start;
         }
     }
+
 </style>
