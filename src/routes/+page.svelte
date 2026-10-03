@@ -9,12 +9,12 @@
         },
         {
             name: 'Business',
-            image: '/images/business.jpg',
+            image: '/images/bussiness.jpg',
             description: 'Business, money and entrepreneurship'
         },
         {
             name: 'Technology',
-            image: '/images/technology.jfif',
+            image: '/images/technology.jpg',
             description: 'Programming, AI and technology'
         }
     ];

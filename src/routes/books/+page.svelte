@@ -1,461 +1,335 @@
 <script>
-    import { browser } from '$app/environment';
+	/**
+	 * @typedef {Object} Book
+	 * @property {number} id
+	 * @property {string} title
+	 * @property {string} author
+	 * @property {string} category
+	 * @property {number} price
+	 * @property {string} image
+	 */
 
-    let search = $state('');
-    let selectedCategory = $state('All');
-    let cartCount = $state(0);
+	let search = $state('');
+	let selectedCategory = $state('All');
 
-    const books = [
-        {
-            id: 1,
-            title: 'The Silent Journey',
-            author: 'Daniel Tesfaye',
-            category: 'Fiction',
-            price: 450,
-            image: '/images/fiction.jpg'
-        },
-        {
-            id: 2,
-            title: 'Build Your Business',
-            author: 'Samuel Bekele',
-            category: 'Business',
-            price: 600,
-            image: '/images/business.jpg'
-        },
-        {
-            id: 3,
-            title: 'Modern Technology',
-            author: 'Michael Tadesse',
-            category: 'Technology',
-            price: 750,
-            image: '/images/technology.jfif'
-        }
-    ];
+	/** @type {Book[]} */
+	const books = [
+	{
+		id: 1,
+		title: 'ኮድ ማድረግ',
+		author: '4KAZ Books',
+		category: 'Technology',
+		price: 200,
+		image: '/images/coding-book.png'
+	},
+	{
+		id: 2,
+		title: 'ጠፈርን ስንመረምር',
+		author: '4KAZ Books',
+		category: 'Kids',
+		price: 300,
+		image: '/images/Eploring-space-book.png'
+	},
+	{
+		id: 3,
+		title: 'ይህ ሰው ማን ነው?',
+		author: '4KAZ Books',
+		category: 'Spiritual',
+		price: 500,
+		image: '/images/who-is-this-man.png'
+	}
+];
 
-    const categories = ['All', 'Fiction', 'Business', 'Technology'];
+	const categories = ['All', 'Fiction', 'Business', 'Technology'];
 
-    let filteredBooks = $derived(
-        books.filter((book) => {
-            const matchesCategory =
-                selectedCategory === 'All' ||
-                book.category === selectedCategory;
+	let filteredBooks = $derived(
+		books.filter((book) => {
+			const query = search.toLowerCase().trim();
 
-            const matchesSearch =
-                book.title
-                    .toLowerCase()
-                    .includes(search.toLowerCase()) ||
-                book.author
-                    .toLowerCase()
-                    .includes(search.toLowerCase());
+			const matchesCategory =
+				selectedCategory === 'All' ||
+				book.category === selectedCategory;
 
-            return matchesCategory && matchesSearch;
-        })
-    );
+			const matchesSearch =
+				book.title.toLowerCase().includes(query) ||
+				book.author.toLowerCase().includes(query);
 
-    function updateCartCount() {
-        if (!browser) return;
+			return matchesCategory && matchesSearch;
+		})
+	);
 
-        try {
-            const saved = localStorage.getItem('4kaz-cart');
-
-            if (!saved) {
-                cartCount = 0;
-                return;
-            }
-
-            const cart = JSON.parse(saved);
-
-            cartCount = cart.reduce(
-                (total, item) => total + item.quantity,
-                0
-            );
-        } catch {
-            cartCount = 0;
-        }
-    }
-
-    function addToCart(book) {
-        if (!browser) return;
-
-        let cart = [];
-
-        try {
-            const saved = localStorage.getItem('4kaz-cart');
-
-            if (saved) {
-                cart = JSON.parse(saved);
-            }
-        } catch {
-            cart = [];
-        }
-
-        const existingBook = cart.find(
-            (item) => item.id === book.id
-        );
-
-        if (existingBook) {
-            existingBook.quantity += 1;
-        } else {
-            cart.push({
-                ...book,
-                quantity: 1
-            });
-        }
-
-        localStorage.setItem(
-            '4kaz-cart',
-            JSON.stringify(cart)
-        );
-
-        updateCartCount();
-    }
-
-    $effect(() => {
-        if (browser) {
-            updateCartCount();
-        }
-    });
+	/**
+	 * @param {Book} book
+	 */
+	function downloadBook(book) {
+		window.location.href = `/buy/${book.id}`;
+	}
 </script>
 
 <svelte:head>
-    <title>Books | 4KAZ Books</title>
-    <meta
-        name="description"
-        content="Browse books from 4KAZ Books."
-    />
+	<title>Digital Books | 4KAZ Books</title>
+	<meta
+		name="description"
+		content="Buy and download digital books from 4KAZ Books."
+	/>
 </svelte:head>
 
-<header>
-    <a class="logo" href="/">4KAZ BOOKS</a>
+<main class="books-page">
 
-    <nav>
-        <a href="/">Home</a>
-        <a href="/books">Books</a>
-        <a href="/about">About</a>
-        <a href="/contact">Contact</a>
-    </nav>
+	<section class="hero">
+		<p class="eyebrow">4KAZ BOOKS</p>
 
-    <a class="cart" href="/cart">
-        🛒 Cart ({cartCount})
-    </a>
-</header>
+		<h1>Digital Books</h1>
 
-<main>
-    <section class="hero">
-        <p class="eyebrow">4KAZ BOOKSTORE</p>
+		<p>
+			Choose your book, pay securely with Chapa,
+			and download your digital copy.
+		</p>
+	</section>
 
-        <h1>Books.</h1>
+	<section class="controls">
 
-        <p class="subtitle">
-            Discover stories, business ideas and modern technology.
-        </p>
-    </section>
+		<input
+			type="search"
+			placeholder="Search books or authors..."
+			bind:value={search}
+		/>
 
-    <section class="controls">
-        <input
-            type="search"
-            placeholder="Search books..."
-            bind:value={search}
-            aria-label="Search books"
-        />
+		<div class="categories">
+			{#each categories as category}
+				<button
+					class:active={selectedCategory === category}
+					onclick={() => selectedCategory = category}
+				>
+					{category}
+				</button>
+			{/each}
+		</div>
 
-        <div class="categories">
-            {#each categories as category}
-                <button
-                    class:active={selectedCategory === category}
-                    onclick={() => selectedCategory = category}
-                >
-                    {category}
-                </button>
-            {/each}
-        </div>
-    </section>
+	</section>
 
-    <section class="books">
-        {#each filteredBooks as book}
-            <article class="book-card">
+	<section class="book-grid">
 
-                <div class="image-wrapper">
-                    <img
-                        src={book.image}
-                        alt={book.title}
-                    />
+		{#each filteredBooks as book}
 
-                    <span class="badge">
-                        {book.category}
-                    </span>
-                </div>
+			<article class="book-card">
 
-                <div class="information">
-                    <p class="author">
-                        {book.author}
-                    </p>
+				<div class="cover">
+					<img
+						src={book.image}
+						alt={book.title}
+					/>
+				</div>
 
-                    <h2>
-                        {book.title}
-                    </h2>
+				<div class="book-info">
 
-                    <div class="bottom">
-                        <strong>
-                            {book.price.toLocaleString()} ETB
-                        </strong>
-<button
-    class="add-button"
-    onclick={() => addToCart(book)}
->
-    Add to Cart
-</button>
-                    </div>
-                </div>
+					<span class="category">
+						{book.category}
+					</span>
 
-            </article>
-        {/each}
-    </section>
+					<h2>{book.title}</h2>
 
-    {#if filteredBooks.length === 0}
-        <div class="empty">
-            <h2>No books found 📚</h2>
-            <p>Try another search.</p>
-        </div>
-    {/if}
+					<p class="author">
+						by {book.author}
+					</p>
+
+					<div class="price">
+						{book.price} ETB
+					</div>
+
+					<button
+						class="download"
+						onclick={() => downloadBook(book)}
+					>
+						Download Now
+					</button>
+
+					<p class="digital">
+						Digital PDF • Available immediately after payment
+					</p>
+
+				</div>
+
+			</article>
+
+		{/each}
+
+	</section>
+
+	{#if filteredBooks.length === 0}
+		<div class="empty">
+			<h2>No books found</h2>
+			<p>Try another search.</p>
+		</div>
+	{/if}
+
 </main>
 
 <style>
-    :global(*) {
-        box-sizing: border-box;
-    }
 
-    :global(body) {
-        margin: 0;
-        background: #f5f5f2;
-        color: #171717;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+	.books-page {
+		max-width: 1200px;
+		margin: auto;
+		padding: 40px 24px 80px;
+	}
 
-    header {
-        height: 86px;
-        padding: 0 5%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: white;
-        border-bottom: 1px solid #ddd;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-    }
+	.hero {
+		text-align: center;
+		margin-bottom: 40px;
+	}
 
-    .logo {
-        color: #171717;
-        text-decoration: none;
-        font-size: 22px;
-        font-weight: 900;
-    }
+	.eyebrow {
+		font-size: 12px;
+		font-weight: 800;
+		letter-spacing: 3px;
+		color: #777;
+	}
 
-    nav {
-        display: flex;
-        gap: 32px;
-    }
+	.hero h1 {
+		font-size: 48px;
+		margin: 8px 0 12px;
+	}
 
-    nav a {
-        color: #171717;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 700;
-    }
+	.hero p {
+		color: #666;
+	}
 
-    .cart {
-        padding: 14px 20px;
-        background: #171717;
-        color: white;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 700;
-    }
+	.controls {
+		margin-bottom: 40px;
+	}
 
-    main {
-        max-width: 1400px;
-        margin: auto;
-        padding: 70px 5% 120px;
-    }
+	.controls input {
+		display: block;
+		width: 100%;
+		max-width: 600px;
+		margin: 0 auto 20px;
+		padding: 14px 18px;
+		border: 1px solid #ddd;
+		border-radius: 10px;
+		font-size: 16px;
+	}
 
-    .hero {
-        margin-bottom: 60px;
-    }
+	.categories {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
 
-    .eyebrow {
-        margin: 0;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 4px;
-    }
+	.categories button {
+		background: white;
+		border: 1px solid #ddd;
+		border-radius: 30px;
+		padding: 9px 18px;
+		cursor: pointer;
+	}
 
-    h1 {
-        margin: 10px 0;
-        font-size: clamp(70px, 10vw, 140px);
-        line-height: 0.9;
-        letter-spacing: -7px;
-    }
+	.categories button.active {
+		background: #111;
+		color: white;
+		border-color: #111;
+	}
 
-    .subtitle {
-        color: #777;
-        font-size: 17px;
-    }
+	.book-grid {
+		display: grid;
+		grid-template-columns:
+			repeat(auto-fit, minmax(250px, 1fr));
+		gap: 30px;
+	}
 
-    .controls {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 30px;
-        margin-bottom: 40px;
-    }
+	.book-card {
+		background: white;
+		border: 1px solid #e5e5e5;
+		border-radius: 16px;
+		overflow: hidden;
+		transition: 0.2s;
+	}
 
-    input {
-        width: min(420px, 100%);
-        padding: 16px 18px;
-        border: 1px solid #ddd;
-        border-radius: 30px;
-        background: white;
-        font-size: 15px;
-        outline: none;
-    }
+	.book-card:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+	}
 
-    .categories {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
+	.cover {
+		height: 330px;
+		background: #f5f5f5;
+		padding: 20px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-    .categories button {
-        padding: 11px 19px;
-        border: 1px solid #ccc;
-        border-radius: 30px;
-        background: transparent;
-        cursor: pointer;
-    }
+	.cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
 
-    .categories button.active {
-        background: #171717;
-        color: white;
-        border-color: #171717;
-    }
+	.book-info {
+		padding: 22px;
+	}
 
-    .books {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 28px;
-    }
+	.category {
+		font-size: 12px;
+		font-weight: bold;
+		color: #777;
+		text-transform: uppercase;
+	}
 
-    .book-card {
-        overflow: hidden;
-        background: white;
-        border-radius: 15px;
-    }
+	.book-info h2 {
+		margin: 8px 0;
+		font-size: 22px;
+	}
 
-    .image-wrapper {
-        height: 390px;
-        position: relative;
-        overflow: hidden;
-    }
+	.author {
+		color: #666;
+		margin-bottom: 18px;
+	}
 
-    .image-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
+	.price {
+		font-size: 22px;
+		font-weight: 800;
+		margin-bottom: 15px;
+	}
 
-    .badge {
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        padding: 8px 14px;
-        background: white;
-        border-radius: 30px;
-        font-size: 11px;
-        font-weight: 700;
-    }
+	.download {
+		width: 100%;
+		border: none;
+		background: #111;
+		color: white;
+		padding: 14px;
+		border-radius: 8px;
+		font-size: 15px;
+		font-weight: bold;
+		cursor: pointer;
+	}
 
-    .information {
-        padding: 24px;
-    }
+	.download:hover {
+		opacity: 0.85;
+	}
 
-    .author {
-        margin: 0 0 8px;
-        color: #888;
-        font-size: 13px;
-    }
+	.digital {
+		text-align: center;
+		font-size: 12px;
+		color: #777;
+		margin-top: 12px;
+	}
 
-    .information h2 {
-        margin: 0 0 35px;
-        font-size: 25px;
-    }
+	.empty {
+		text-align: center;
+		padding: 60px;
+	}
 
-    .bottom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-    }
+	@media (max-width: 600px) {
 
-    .bottom strong {
-        font-size: 18px;
-    }
+		.books-page {
+			padding: 25px 15px;
+		}
 
-    .add-button {
-        padding: 13px 18px;
-        border: none;
-        border-radius: 7px;
-        background: #171717;
-        color: white;
-        font-weight: 700;
-        cursor: pointer;
-    }
+		.hero h1 {
+			font-size: 36px;
+		}
 
-    .add-button:hover {
-        opacity: 0.82;
-    }
+	}
 
-    .empty {
-        padding: 80px 20px;
-        text-align: center;
-    }
-
-    @media (max-width: 950px) {
-        .books {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .controls {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-    }
-
-    @media (max-width: 650px) {
-        nav {
-            display: none;
-        }
-
-        header {
-            padding: 0 20px;
-        }
-
-        main {
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-
-        .books {
-            grid-template-columns: 1fr;
-        }
-
-        .image-wrapper {
-            height: 430px;
-        }
-
-        h1 {
-            letter-spacing: -4px;
-        }
-    }
 </style>

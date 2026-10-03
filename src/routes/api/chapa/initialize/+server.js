@@ -2,10 +2,29 @@ import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import crypto from 'node:crypto';
 
+/*
+ * IMPORTANT:
+ * These prices live on the SERVER.
+ * The customer's browser cannot choose the payment amount.
+ */
+const BOOKS = {
+	1: {
+		title: 'The Silent Journey',
+		price: 450
+	},
+	2: {
+		title: 'Build Your Business',
+		price: 600
+	},
+	3: {
+		title: 'Modern Technology',
+		price: 750
+	}
+};
+
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request, url }) {
 	try {
-		// Make sure the Chapa secret key exists
 		if (!env.CHAPA_SECRET_KEY) {
 			console.error('CHAPA_SECRET_KEY is missing.');
 
@@ -20,17 +39,22 @@ export async function POST({ request, url }) {
 
 		const body = await request.json();
 
-		const amount = Number(body.amount);
+		const bookId = Number(body.bookId);
 		const fullName = String(body.fullName ?? '').trim();
 		const email = String(body.email ?? '').trim();
 		const phone = String(body.phone ?? '').trim();
 
-		// Basic validation
-		if (!Number.isFinite(amount) || amount <= 0) {
+		/*
+		 * Find the book on OUR SERVER.
+		 * We do NOT accept the price from the browser.
+		 */
+		const book = BOOKS[bookId];
+
+		if (!book) {
 			return json(
 				{
 					success: false,
-					message: 'Invalid payment amount.'
+					message: 'Invalid book.'
 				},
 				{ status: 400 }
 			);
@@ -46,18 +70,40 @@ export async function POST({ request, url }) {
 			);
 		}
 
-		// Split full name
-		const nameParts = fullName.split(/\s+/);
-		const firstName = nameParts[0];
-		const lastName = nameParts.slice(1).join(' ') || 'Customer';
+		if (!phone) {
+			return json(
+				{
+					success: false,
+					message: 'Phone number is required.'
+				},
+				{ status: 400 }
+			);
+		}
 
-		// Create a unique transaction reference
+		const nameParts = fullName.split(/\s+/);
+
+		const firstName = nameParts[0];
+
+		const lastName =
+			nameParts.slice(1).join(' ') || 'Customer';
+
+		/*
+		 * Include the book ID in the transaction reference.
+		 *
+		 * Example:
+		 * 4KAZ-B1-1760000000000-a1b2c3d4
+		 */
 		const txRef =
-			`4KAZ-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+			`4KAZ-B${bookId}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
 
 		/** @type {Record<string, any>} */
-            const payload = {
-			amount: amount.toFixed(2),
+		const payload = {
+			/*
+			 * Price comes from BOOKS above,
+			 * NOT from the customer's browser.
+			 */
+			amount: book.price.toFixed(2),
+
 			currency: 'ETB',
 
 			first_name: firstName,
@@ -73,16 +119,14 @@ export async function POST({ request, url }) {
 
 			customization: {
 				title: '4KAZ Books',
-				description: 'Book purchase from 4KAZ Books'
+				description: `Digital book: ${book.title}`
 			}
 		};
 
-		// Email is optional
 		if (email) {
 			payload.email = email;
 		}
 
-		// Chapa requires a supplied phone number to be in a valid format.
 		if (phone) {
 			payload.phone_number = phone;
 		}
@@ -109,21 +153,32 @@ export async function POST({ request, url }) {
 			return json(
 				{
 					success: false,
-					message: data.message || 'Unable to initialize Chapa payment.'
+					message:
+						data.message ||
+						'Unable to initialize Chapa payment.'
 				},
-				{ status: response.status || 500 }
+				{
+					status:
+						response.status >= 400
+							? response.status
+							: 500
+				}
 			);
 		}
 
 		const checkoutUrl = data?.data?.checkout_url;
 
 		if (!checkoutUrl) {
-			console.error('Chapa did not return checkout_url:', data);
+			console.error(
+				'Chapa did not return checkout_url:',
+				data
+			);
 
 			return json(
 				{
 					success: false,
-					message: 'Chapa did not return a checkout URL.'
+					message:
+						'Chapa did not return a checkout URL.'
 				},
 				{ status: 502 }
 			);
@@ -132,7 +187,13 @@ export async function POST({ request, url }) {
 		return json({
 			success: true,
 			checkoutUrl,
-			txRef
+			txRef,
+
+			book: {
+				id: bookId,
+				title: book.title,
+				price: book.price
+			}
 		});
 	} catch (error) {
 		console.error('Chapa payment error:', error);
