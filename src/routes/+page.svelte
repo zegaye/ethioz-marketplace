@@ -1,639 +1,783 @@
 <script>
-    let search = $state('');
+	let search = $state('');
 
-    const categories = [
-        {
-            name: 'Fiction',
-            image: '/images/fiction.jpg',
-            description: 'Novels, stories and literature'
-        },
-        {
-            name: 'Business',
-            image: '/images/bussiness.jpg',
-            description: 'Business, money and entrepreneurship'
-        },
-        {
-            name: 'Technology',
-            image: '/images/technology.jpg',
-            description: 'Programming, AI and technology'
-        }
-    ];
+	const categories = [
+		{
+			name: 'Cars',
+			icon: '🚗',
+			description: 'New & used cars',
+			href: '/cars'
+		},
+		{
+			name: 'Mobile Phones',
+			icon: '📱',
+			description: 'Phones & accessories',
+			href: '/mobile'
+		},
+		{
+			name: 'Laptops',
+			icon: '💻',
+			description: 'Laptops & computers',
+			href: '/laptops'
+		},
+		{
+			name: 'TV & Electronics',
+			icon: '📺',
+			description: 'TVs & electronics',
+			href: '/electronics'
+		},
+		{
+			name: 'Home & Furniture',
+			icon: '🛋️',
+			description: 'Furniture & home items',
+			href: '/home-items'
+		},
+		{
+			name: 'Other Items',
+			icon: '📦',
+			description: 'Explore everything else',
+			href: '/products'
+		}
+	];
 
-    function searchBooks() {
-        if (!search.trim()) return;
+	const featuredProducts = [
+		{
+			id: 1,
+			title: 'Toyota Corolla',
+			price: '1,850,000 ETB',
+			condition: 'Used',
+			location: 'Addis Ababa',
+			icon: '🚗'
+		},
+		{
+			id: 2,
+			title: 'iPhone 14 Pro',
+			price: '78,000 ETB',
+			condition: 'Used',
+			location: 'Addis Ababa',
+			icon: '📱'
+		},
+		{
+			id: 3,
+			title: 'HP EliteBook Laptop',
+			price: '52,000 ETB',
+			condition: 'Used',
+			location: 'Addis Ababa',
+			icon: '💻'
+		},
+		{
+			id: 4,
+			title: 'Samsung Smart TV',
+			price: '46,500 ETB',
+			condition: 'New',
+			location: 'Addis Ababa',
+			icon: '📺'
+		}
+	];
 
-        window.location.href =
-            `/books?search=${encodeURIComponent(search.trim())}`;
-    }
+	function searchMarketplace() {
+		const query = search.trim();
+
+		if (!query) return;
+
+		window.location.href =
+			`/products?search=${encodeURIComponent(query)}`;
+	}
 </script>
 
 <svelte:head>
-    <title>4KAZ Books | Online Bookstore</title>
-    <meta
-        name="description"
-        content="Discover and buy books from 4KAZ Books."
-    />
+	<title>4KAZ Marketplace | Buy & Sell in Ethiopia</title>
+
+	<meta
+		name="description"
+		content="Buy and sell new and used cars, phones, laptops, electronics and more on 4KAZ Marketplace."
+	/>
 </svelte:head>
 
 <header class="navbar">
-    <div class="brand">
-        <img
-            src="/images/ethioz logo.jpg"
-            alt="4KAZ Books"
-            class="logo"
-        />
+	<a class="brand" href="/">
+		<img
+			src="/images/ethioz logo.jpg"
+			alt="4KAZ Marketplace"
+		/>
 
-        <a href="/" class="company-name">4KAZ BOOKS</a>
-    </div>
+		<div>
+			<strong>4KAZ</strong>
+			<span>Marketplace</span>
+		</div>
+	</a>
 
-    <nav>
-        <a href="/">Home</a>
-        <a href="/books">Books</a>
-        <a href="#categories">Categories</a>
-        <a href="/about">About</a>
-        <a href="/contact">Contact</a>
-    </nav>
+	<nav>
+		<a href="/">Home</a>
+		<a href="/products">Browse</a>
+		<a href="/cars">Cars</a>
+		<a href="/mobile">Phones</a>
+		<a href="/electronics">Electronics</a>
+	</nav>
 
-    <div class="account">
-        <a class="cart" href="/cart">
-            🛒 Cart
-        </a>
-    </div>
+	<a class="sell-button" href="/sell">
+		+ Sell an Item
+	</a>
 </header>
 
 <main>
+	<section class="hero">
+		<div class="hero-content">
+			<p class="eyebrow">4KAZ MARKETPLACE</p>
 
-    <!-- HERO -->
-    <section class="hero">
+			<h1>
+				BUY IT.<br />
+				SELL IT. <span>FIND IT.</span>
+			</h1>
 
-        <p class="eyebrow">4KAZ ONLINE BOOKSTORE</p>
+			<p class="hero-description">
+				Discover new and used products from sellers across Ethiopia.
+				Cars, phones, laptops, electronics and much more.
+			</p>
 
-        <h1>
-            READ.<br />
-            LEARN. <span>GROW.</span>
-        </h1>
+			<form
+				class="search-box"
+				onsubmit={(event) => {
+					event.preventDefault();
+					searchMarketplace();
+				}}
+			>
+				<span class="search-icon">⌕</span>
 
-        <p class="hero-description">
-            Discover books that entertain, educate and inspire.
-            Find your next great read at 4KAZ Books.
-        </p>
+				<input
+					bind:value={search}
+					type="search"
+					placeholder="Search cars, phones, laptops, TVs..."
+				/>
 
-        <form
-            class="search-box"
-            onsubmit={(event) => {
-                event.preventDefault();
-                searchBooks();
-            }}
-        >
-            <span class="search-icon">⌕</span>
+				<button type="submit">
+					Search
+				</button>
+			</form>
 
-            <input
-                bind:value={search}
-                type="search"
-                placeholder="Search by title, author or category..."
-            />
+			<div class="popular">
+				<span>Popular:</span>
+				<a href="/cars">Cars</a>
+				<a href="/mobile">Phones</a>
+				<a href="/laptops">Laptops</a>
+				<a href="/electronics">Electronics</a>
+			</div>
+		</div>
+	</section>
 
-            <button type="submit">Search</button>
-        </form>
+	<section class="categories-section">
+		<div class="section-heading">
+			<div>
+				<p class="eyebrow">EXPLORE</p>
+				<h2>Shop by category</h2>
+			</div>
 
-        <div class="popular">
-            <span>Popular:</span>
+			<a href="/products">View all →</a>
+		</div>
 
-            <a href="/books?category=Fiction">Fiction</a>
-            <a href="/books?category=Business">Business</a>
-            <a href="/books?category=Technology">Technology</a>
-        </div>
+		<div class="category-grid">
+			{#each categories as category}
+				<a
+					class="category-card"
+					href={category.href}
+				>
+					<div class="category-icon">
+						{category.icon}
+					</div>
 
-    </section>
+					<div>
+						<h3>{category.name}</h3>
+						<p>{category.description}</p>
+					</div>
 
-    <!-- CATEGORIES -->
-    <section class="books-section" id="categories">
+					<span class="arrow">→</span>
+				</a>
+			{/each}
+		</div>
+	</section>
 
-        <div class="section-top">
-            <div>
-                <p class="eyebrow">EXPLORE</p>
-                <h2>Book Categories</h2>
-            </div>
+	<section class="featured-section">
+		<div class="section-heading">
+			<div>
+				<p class="eyebrow">JUST LISTED</p>
+				<h2>Featured items</h2>
+			</div>
 
-            <a href="/books">View all books →</a>
-        </div>
+			<a href="/products">Browse marketplace →</a>
+		</div>
 
-        <div class="category-grid">
+		<div class="product-grid">
+			{#each featuredProducts as product}
+				<a
+					class="product-card"
+					href={`/product/${product.id}`}
+				>
+					<div class="product-image">
+						<span>{product.icon}</span>
 
-            {#each categories as category}
+						<div class="condition">
+							{product.condition}
+						</div>
+					</div>
 
-                <a
-                    class="category-card"
-                    href={`/books?category=${category.name}`}
-                >
-                    <img
-                        src={category.image}
-                        alt={category.name}
-                    />
+					<div class="product-info">
+						<p class="location">
+							📍 {product.location}
+						</p>
 
-                    <div class="overlay"></div>
+						<h3>{product.title}</h3>
 
-                    <div class="card-content">
-                        <p>EXPLORE</p>
+						<strong>{product.price}</strong>
+					</div>
+				</a>
+			{/each}
+		</div>
+	</section>
 
-                        <h3>{category.name}</h3>
+	<section class="sell-section">
+		<div>
+			<p class="eyebrow light">START SELLING</p>
 
-                        <span>
-                            {category.description}
-                        </span>
-                    </div>
+			<h2>
+				GOT SOMETHING<br />
+				TO SELL?
+			</h2>
 
-                    <div class="arrow">↗</div>
-                </a>
+			<p>
+				Create a listing and reach buyers looking for
+				new and used products.
+			</p>
+		</div>
 
-            {/each}
-
-        </div>
-
-    </section>
-
-    <!-- ABOUT -->
-    <section class="about">
-
-        <div>
-            <p class="eyebrow light">
-                4KAZ BOOKS
-            </p>
-
-            <h2>
-                FIND YOUR<br />
-                NEXT BOOK.
-            </h2>
-
-            <p class="about-text">
-                From powerful business books to unforgettable
-                fiction and modern technology guides, discover
-                books for every kind of reader.
-            </p>
-        </div>
-
-        <a class="start-button" href="/books">
-            Start Shopping →
-        </a>
-
-    </section>
-
+		<a href="/sell">
+			Sell an Item →
+		</a>
+	</section>
 </main>
 
 <footer>
+	<div class="footer-brand">
+		<img
+			src="/images/ethioz logo.jpg"
+			alt="4KAZ Marketplace"
+		/>
 
-    <div class="footer-brand">
+		<div>
+			<strong>4KAZ</strong>
+			<p>Marketplace</p>
+		</div>
+	</div>
 
-        <img
-            src="/images/ethioz logo.jpg"
-            alt="4KAZ Books"
-        />
+	<p>
+		Cars · Phones · Laptops · Electronics · More
+	</p>
 
-        <div>
-            <h2>4KAZ</h2>
-            <p>Online Bookstore</p>
-        </div>
-
-    </div>
-
-    <div>
-        Fiction · Business · Technology
-    </div>
-
-    <div>
-        © 2026 4KAZ Books
-    </div>
-
+	<p>© 2026 4KAZ Marketplace</p>
 </footer>
 
-
 <style>
-
-    :global(*) {
-        box-sizing: border-box;
-    }
-
-    :global(html) {
-        scroll-behavior: smooth;
-    }
-
-    :global(body) {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background: #f2f2f0;
-        color: #171717;
-    }
-
-    button,
-    input {
-        font-family: inherit;
-    }
-
-    button {
-        cursor: pointer;
-    }
-
-
-    /* NAVIGATION */
-
-    .navbar {
-        height: 86px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 5%;
-        background: rgba(242, 242, 240, 0.96);
-        border-bottom: 1px solid #d6d6d6;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .logo {
-        width: 50px;
-        height: 50px;
-        object-fit: contain;
-    }
-
-    .company-name {
-        font-size: 24px;
-        font-weight: 900;
-        text-decoration: none;
-        color: #111;
-        letter-spacing: -1px;
-    }
-
-    nav {
-        display: flex;
-        gap: 28px;
-    }
-
-    nav a {
-        text-decoration: none;
-        color: #222;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    nav a:hover {
-        opacity: 0.5;
-    }
-
-    .cart {
-        display: inline-block;
-        background: #191919;
-        color: white;
-        text-decoration: none;
-        padding: 14px 22px;
-        border-radius: 8px;
-        font-weight: bold;
-    }
-
-
-    /* HERO */
-
-    .hero {
-        min-height: 680px;
-        padding: 90px 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .eyebrow {
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 4px;
-        margin: 0 0 25px;
-    }
-
-    .hero h1 {
-        margin: 0;
-        font-size: clamp(70px, 11vw, 155px);
-        line-height: 0.8;
-        letter-spacing: -8px;
-        font-weight: 900;
-    }
-
-    .hero h1 span {
-        color: #666;
-    }
-
-    .hero-description {
-        max-width: 600px;
-        margin-top: 40px;
-        font-size: 18px;
-        line-height: 1.6;
-        color: #666;
-    }
-
-
-    /* SEARCH */
-
-    .search-box {
-        width: min(760px, 100%);
-        background: white;
-        display: flex;
-        align-items: center;
-        padding: 9px 9px 9px 20px;
-        border-radius: 12px;
-        margin-top: 30px;
-        box-shadow: 0 15px 50px rgba(0,0,0,0.08);
-    }
-
-    .search-icon {
-        font-size: 27px;
-    }
-
-    .search-box input {
-        flex: 1;
-        border: none;
-        outline: none;
-        padding: 18px;
-        font-size: 15px;
-        min-width: 0;
-    }
-
-    .search-box button {
-        background: #191919;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 17px 30px;
-        font-weight: bold;
-    }
-
-    .popular {
-        margin-top: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 8px;
-        font-size: 12px;
-    }
-
-    .popular a {
-        color: #111;
-        text-decoration: none;
-        border: 1px solid #ccc;
-        border-radius: 30px;
-        padding: 8px 15px;
-    }
-
-    .popular a:hover {
-        background: #191919;
-        color: white;
-    }
-
-
-    /* BOOK CATEGORIES */
-
-    .books-section {
-        background: white;
-        padding: 100px 6%;
-    }
-
-    .section-top {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        margin-bottom: 50px;
-    }
-
-    .section-top h2 {
-        font-size: clamp(45px, 6vw, 80px);
-        letter-spacing: -5px;
-        margin: 0;
-    }
-
-    .section-top > a {
-        color: #111;
-        font-weight: bold;
-    }
-
-    .category-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-    }
-
-    .category-card {
-        height: 500px;
-        position: relative;
-        overflow: hidden;
-        border-radius: 15px;
-        text-decoration: none;
-        background: #222;
-    }
-
-    .category-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: transform 0.5s ease;
-    }
-
-    .category-card:hover img {
-        transform: scale(1.07);
-    }
-
-    .overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            to top,
-            rgba(0,0,0,0.9),
-            rgba(0,0,0,0.05)
-        );
-    }
-
-    .card-content {
-        position: absolute;
-        left: 30px;
-        bottom: 30px;
-        color: white;
-    }
-
-    .card-content p {
-        font-size: 10px;
-        letter-spacing: 3px;
-        margin-bottom: 8px;
-    }
-
-    .card-content h3 {
-        font-size: 42px;
-        margin: 0 0 7px;
-        letter-spacing: -2px;
-    }
-
-    .card-content span {
-        font-size: 14px;
-        color: #ddd;
-    }
-
-    .arrow {
-        position: absolute;
-        top: 25px;
-        right: 25px;
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: white;
-        color: #111;
-        border-radius: 50%;
-        font-size: 22px;
-    }
-
-
-    /* ABOUT */
-
-    .about {
-        margin: 80px 6%;
-        min-height: 430px;
-        background: #181818;
-        color: white;
-        border-radius: 18px;
-        padding: 65px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 50px;
-    }
-
-    .light {
-        color: #aaa;
-    }
-
-    .about h2 {
-        font-size: clamp(55px, 7vw, 100px);
-        line-height: 0.85;
-        letter-spacing: -6px;
-        margin: 0 0 30px;
-    }
-
-    .about-text {
-        max-width: 500px;
-        color: #aaa;
-        line-height: 1.6;
-    }
-
-    .start-button {
-        background: white;
-        color: #111;
-        text-decoration: none;
-        border-radius: 8px;
-        padding: 19px 28px;
-        font-weight: bold;
-        white-space: nowrap;
-    }
-
-
-    /* FOOTER */
-
-    footer {
-        border-top: 1px solid #ccc;
-        padding: 55px 6%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 30px;
-        color: #666;
-        font-size: 13px;
-    }
-
-    .footer-brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .footer-brand img {
-        width: 45px;
-        height: 45px;
-        object-fit: contain;
-    }
-
-    .footer-brand h2 {
-        color: #111;
-        font-size: 24px;
-        margin: 0;
-    }
-
-    .footer-brand p {
-        margin: 3px 0 0;
-    }
-
-
-    /* MOBILE */
-
-    @media (max-width: 850px) {
-
-        nav {
-            display: none;
-        }
-
-        .navbar {
-            padding: 0 20px;
-        }
-
-        .company-name {
-            font-size: 19px;
-        }
-
-        .hero {
-            min-height: 600px;
-            padding: 70px 20px;
-        }
-
-        .hero h1 {
-            letter-spacing: -5px;
-        }
-
-        .category-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .category-card {
-            height: 420px;
-        }
-
-        .books-section {
-            padding: 70px 20px;
-        }
-
-        .section-top {
-            align-items: flex-start;
-            gap: 20px;
-        }
-
-        .about {
-            margin: 40px 20px;
-            padding: 45px 30px;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .about h2 {
-            letter-spacing: -4px;
-        }
-
-        footer {
-            padding: 40px 20px;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-    }
-
+	:global(*) {
+		box-sizing: border-box;
+	}
+
+	:global(html) {
+		scroll-behavior: smooth;
+	}
+
+	:global(body) {
+		margin: 0;
+		font-family: Arial, Helvetica, sans-serif;
+		background: #f5f5f3;
+		color: #171717;
+	}
+
+	button,
+	input {
+		font-family: inherit;
+	}
+
+	button {
+		cursor: pointer;
+	}
+
+	.navbar {
+		height: 82px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 30px;
+		padding: 0 5%;
+		background: rgba(255, 255, 255, 0.97);
+		border-bottom: 1px solid #dedede;
+		position: sticky;
+		top: 0;
+		z-index: 100;
+	}
+
+	.brand {
+		display: flex;
+		align-items: center;
+		gap: 11px;
+		color: #111;
+		text-decoration: none;
+	}
+
+	.brand img {
+		width: 46px;
+		height: 46px;
+		object-fit: contain;
+	}
+
+	.brand div {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.brand strong {
+		font-size: 22px;
+		line-height: 1;
+	}
+
+	.brand span {
+		margin-top: 3px;
+		font-size: 11px;
+		color: #777;
+		text-transform: uppercase;
+		letter-spacing: 1.5px;
+	}
+
+	nav {
+		display: flex;
+		align-items: center;
+		gap: 26px;
+	}
+
+	nav a {
+		color: #222;
+		text-decoration: none;
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	nav a:hover {
+		opacity: 0.55;
+	}
+
+	.sell-button {
+		background: #191919;
+		color: white;
+		padding: 13px 20px;
+		border-radius: 8px;
+		text-decoration: none;
+		font-size: 14px;
+		font-weight: 700;
+	}
+
+	.hero {
+		min-height: 650px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 80px 20px;
+		background:
+			radial-gradient(
+				circle at 50% 0%,
+				#ffffff 0%,
+				#f5f5f3 55%
+			);
+	}
+
+	.hero-content {
+		width: 100%;
+		max-width: 1100px;
+	}
+
+	.eyebrow {
+		margin: 0 0 22px;
+		font-size: 11px;
+		font-weight: 900;
+		letter-spacing: 4px;
+	}
+
+	.hero h1 {
+		margin: 0;
+		font-size: clamp(65px, 10vw, 140px);
+		line-height: 0.82;
+		letter-spacing: -7px;
+		font-weight: 900;
+	}
+
+	.hero h1 span {
+		color: #737373;
+	}
+
+	.hero-description {
+		max-width: 650px;
+		margin: 38px auto 0;
+		color: #666;
+		font-size: 18px;
+		line-height: 1.6;
+	}
+
+	.search-box {
+		width: min(800px, 100%);
+		margin: 30px auto 0;
+		display: flex;
+		align-items: center;
+		padding: 9px 9px 9px 20px;
+		background: white;
+		border: 1px solid #e1e1e1;
+		border-radius: 12px;
+		box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+	}
+
+	.search-icon {
+		font-size: 26px;
+	}
+
+	.search-box input {
+		flex: 1;
+		min-width: 0;
+		padding: 18px;
+		border: 0;
+		outline: 0;
+		font-size: 15px;
+		background: transparent;
+	}
+
+	.search-box button {
+		border: 0;
+		border-radius: 8px;
+		padding: 17px 30px;
+		background: #191919;
+		color: white;
+		font-weight: 700;
+	}
+
+	.popular {
+		margin-top: 20px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		font-size: 12px;
+	}
+
+	.popular a {
+		padding: 8px 14px;
+		border: 1px solid #ccc;
+		border-radius: 30px;
+		color: #111;
+		text-decoration: none;
+	}
+
+	.popular a:hover {
+		background: #191919;
+		color: white;
+	}
+
+	.categories-section,
+	.featured-section {
+		padding: 90px 6%;
+		background: white;
+	}
+
+	.featured-section {
+		background: #f5f5f3;
+	}
+
+	.section-heading {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 30px;
+		margin-bottom: 45px;
+	}
+
+	.section-heading h2 {
+		margin: 0;
+		font-size: clamp(42px, 5vw, 70px);
+		letter-spacing: -4px;
+	}
+
+	.section-heading > a {
+		color: #111;
+		font-weight: 700;
+	}
+
+	.category-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 16px;
+	}
+
+	.category-card {
+		min-height: 150px;
+		display: flex;
+		align-items: center;
+		gap: 20px;
+		position: relative;
+		padding: 25px;
+		border: 1px solid #e2e2e2;
+		border-radius: 14px;
+		color: #111;
+		background: #fafafa;
+		text-decoration: none;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+
+	.category-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+	}
+
+	.category-icon {
+		width: 68px;
+		height: 68px;
+		display: grid;
+		place-items: center;
+		flex: 0 0 auto;
+		background: white;
+		border-radius: 50%;
+		font-size: 34px;
+	}
+
+	.category-card h3 {
+		margin: 0 0 6px;
+		font-size: 20px;
+	}
+
+	.category-card p {
+		margin: 0;
+		color: #777;
+		font-size: 13px;
+	}
+
+	.arrow {
+		position: absolute;
+		top: 18px;
+		right: 20px;
+		font-size: 20px;
+	}
+
+	.product-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 18px;
+	}
+
+	.product-card {
+		overflow: hidden;
+		border: 1px solid #dedede;
+		border-radius: 14px;
+		background: white;
+		color: #111;
+		text-decoration: none;
+		transition: transform 0.2s ease;
+	}
+
+	.product-card:hover {
+		transform: translateY(-4px);
+	}
+
+	.product-image {
+		height: 230px;
+		display: grid;
+		place-items: center;
+		position: relative;
+		background: #eeeeeb;
+	}
+
+	.product-image > span {
+		font-size: 80px;
+	}
+
+	.condition {
+		position: absolute;
+		top: 14px;
+		left: 14px;
+		padding: 7px 11px;
+		background: white;
+		border-radius: 30px;
+		font-size: 11px;
+		font-weight: 800;
+	}
+
+	.product-info {
+		padding: 18px;
+	}
+
+	.location {
+		margin: 0 0 8px;
+		color: #888;
+		font-size: 11px;
+	}
+
+	.product-info h3 {
+		margin: 0 0 15px;
+		font-size: 17px;
+	}
+
+	.product-info strong {
+		font-size: 20px;
+	}
+
+	.sell-section {
+		margin: 80px 6%;
+		min-height: 400px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 50px;
+		padding: 65px;
+		border-radius: 18px;
+		background: #191919;
+		color: white;
+	}
+
+	.light {
+		color: #aaa;
+	}
+
+	.sell-section h2 {
+		margin: 0 0 25px;
+		font-size: clamp(55px, 7vw, 95px);
+		line-height: 0.86;
+		letter-spacing: -6px;
+	}
+
+	.sell-section p:not(.eyebrow) {
+		max-width: 500px;
+		color: #aaa;
+		line-height: 1.6;
+	}
+
+	.sell-section > a {
+		padding: 19px 27px;
+		border-radius: 8px;
+		background: white;
+		color: #111;
+		text-decoration: none;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+
+	footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 30px;
+		padding: 50px 6%;
+		border-top: 1px solid #d6d6d6;
+		color: #777;
+		font-size: 13px;
+	}
+
+	.footer-brand {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.footer-brand img {
+		width: 44px;
+		height: 44px;
+		object-fit: contain;
+	}
+
+	.footer-brand strong {
+		color: #111;
+		font-size: 22px;
+	}
+
+	.footer-brand p {
+		margin: 2px 0 0;
+	}
+
+	@media (max-width: 1000px) {
+		.product-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.category-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 800px) {
+		nav {
+			display: none;
+		}
+
+		.navbar {
+			padding: 0 18px;
+		}
+
+		.hero {
+			min-height: 580px;
+		}
+
+		.hero h1 {
+			letter-spacing: -4px;
+		}
+
+		.categories-section,
+		.featured-section {
+			padding: 65px 20px;
+		}
+
+		.section-heading {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+
+		.sell-section {
+			margin: 40px 20px;
+			padding: 45px 30px;
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.sell-section h2 {
+			letter-spacing: -4px;
+		}
+
+		footer {
+			padding: 40px 20px;
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.brand span {
+			display: none;
+		}
+
+		.sell-button {
+			padding: 11px 14px;
+			font-size: 12px;
+		}
+
+		.category-grid,
+		.product-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.search-box {
+			padding-left: 14px;
+		}
+
+		.search-box button {
+			padding: 15px 18px;
+		}
+
+		.product-image {
+			height: 210px;
+		}
+	}
 </style>
