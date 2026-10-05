@@ -17,9 +17,8 @@
     let selectedCategory = $state(
         page.url.searchParams.get('category') ?? 'All'
     );
-    let selectedCondition = $state('All');
-
-    let databaseProducts = $state([]);
+    let selectedCondition = $state('All');   
+let databaseProducts = $state([]);
     let loading = $state(true);
     let loadError = $state('');
 
@@ -356,7 +355,7 @@
                         <a
                             class="product-card"
                             href={product.database
-                                ? `/product/${product.id}`
+                                ? `/products/${product.id}`
                                 : '#'}
                             onclick={(event) => {
                                 if (!product.database) {
