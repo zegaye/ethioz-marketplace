@@ -78,6 +78,19 @@
 	let furnitureCondition = $state('');
 	let setPieces = $state('');
 	let deliveryAvailable = $state('');
+	// REAL ESTATE
+	let propertyType = $state('');
+	let listingType = $state('For Sale');
+	let subCity = $state('');
+	let specificLocation = $state('');
+	let bedrooms = $state('');
+	let bathrooms = $state('');
+	let floor = $state('');
+	let areaSqm = $state('');
+	let propertyStatus = $state('');
+	let furnishing = $state('');
+	let ownershipDocument = $state('');
+	let rentPeriod = $state('Per Month');
 
 	// OTHER
 	let otherBrand = $state('');
@@ -236,7 +249,26 @@
 				deliveryAvailable
 			};
 		}
-
+		if (category === 'Real Estate') {
+			return {
+				propertyType,
+				listingType,
+				city: 'Addis Ababa',
+				subCity,
+				specificLocation,
+				bedrooms,
+				bathrooms,
+				floor,
+				areaSqm,
+				propertyStatus,
+				furnishing,
+				ownershipDocument,
+				rentPeriod:
+					listingType === 'For Rent'
+						? rentPeriod
+						: null
+			};
+		}
 		if (category === 'Other') {
 			return {
 				brand: otherBrand,
@@ -526,37 +558,52 @@
 								</option>
 
 								<option value="Home & Furniture">
-									Home & Furniture
-								</option>
+	Home & Furniture
+</option>
 
-								<option value="Other">
-									Other
-								</option>
+<option value="Real Estate">
+	Real Estate
+</option>
+
+<option value="Other">
+	Other
+</option>
 							</select>
 						</div>
 
-						<div class="field">
-							<label for="condition">
-								Condition *
-							</label>
+						{#if category !== 'Real Estate'}
+	<div class="field">
+		<label for="condition">
+			Condition *
+		</label>
 
-							<select
-								id="condition"
-								bind:value={condition}
-								required
-							>
-								<option value="Used">
-									Used
-								</option>
+		<select
+			id="condition"
+			bind:value={condition}
+			required
+		>
+			<option value="Used">
+				Used
+			</option>
 
-								<option value="New">
-									New
-								</option>
-							</select>
-						</div>
-					</div>
-				</div>
-			</div>
+			<option value="New">
+				New
+			</option>
+		</select>
+	</div>
+{:else}
+	<div class="field">
+		<label for="property-listing-summary">
+			Listing
+		</label>
+
+		<input
+			id="property-listing-summary"
+			value={listingType}
+			disabled
+		/>
+	</div>
+{/if}
 
 			<!-- CATEGORY SPECIFICATIONS -->
 
@@ -1486,9 +1533,315 @@
 									</option>
 								</select>
 							</div>
+{:else if category === 'Real Estate'}
 
-						<!-- OTHER -->
+	<div class="property-heading">
+		<h3>🏠 Property information</h3>
+		<p>
+			Enter the condominium information buyers or
+			tenants need.
+		</p>
+	</div>
 
+	<div class="two-columns">
+
+		<div class="field">
+			<label for="property-type">
+				Condominium type *
+			</label>
+
+			<select
+				id="property-type"
+				bind:value={propertyType}
+				required
+			>
+				<option value="">
+					Choose condominium type
+				</option>
+
+				<option value="Condominium 20/80">
+					Condominium 20/80
+				</option>
+
+				<option value="Condominium 40/60">
+					Condominium 40/60
+				</option>
+			</select>
+		</div>
+
+
+		<div class="field">
+			<label for="listing-type">
+				Listing type *
+			</label>
+
+			<select
+				id="listing-type"
+				bind:value={listingType}
+				required
+			>
+				<option value="For Sale">
+					For Sale
+				</option>
+
+				<option value="For Rent">
+					For Rent
+				</option>
+			</select>
+		</div>
+
+	</div>
+
+
+	<div class="three-columns">
+
+		<div class="field">
+			<label for="property-city">
+    City
+</label>
+
+<input
+    id="property-city"
+    value="Addis Ababa"
+    disabled
+/>
+			/>
+		</div>
+
+
+		<div class="field">
+			<label for="sub-city">
+				Sub-city *
+			</label>
+
+			<select
+				id="sub-city"
+				bind:value={subCity}
+				required
+			>
+				<option value="">
+					Choose sub-city
+				</option>
+
+				<option>Bole</option>
+				<option>Yeka</option>
+				<option>Kirkos</option>
+				<option>Arada</option>
+				<option>Lideta</option>
+				<option>Gulele</option>
+				<option>Kolfe Keranio</option>
+				<option>Nifas Silk-Lafto</option>
+				<option>Akaki Kality</option>
+				<option>Lemi Kura</option>
+			</select>
+		</div>
+
+
+		<div class="field">
+			<label for="specific-location">
+				Specific location *
+			</label>
+
+			<input
+				id="specific-location"
+				bind:value={specificLocation}
+				placeholder="Example: Bole Bulbula"
+				required
+			/>
+		</div>
+
+	</div>
+
+
+	<div class="three-columns">
+
+		<div class="field">
+			<label for="bedrooms">
+				Bedrooms *
+			</label>
+
+			<select
+				id="bedrooms"
+				bind:value={bedrooms}
+				required
+			>
+				<option value="">
+					Choose
+				</option>
+
+				<option>Studio</option>
+				<option>1</option>
+				<option>2</option>
+				<option>3</option>
+				<option>4</option>
+				<option>5+</option>
+			</select>
+		</div>
+
+
+		<div class="field">
+			<label for="bathrooms">
+				Bathrooms
+			</label>
+
+			<select
+				id="bathrooms"
+				bind:value={bathrooms}
+			>
+				<option value="">
+					Choose
+				</option>
+
+				<option>1</option>
+				<option>2</option>
+				<option>3</option>
+				<option>4+</option>
+			</select>
+		</div>
+
+
+		<div class="field">
+			<label for="floor">
+				Floor *
+			</label>
+
+			<select
+				id="floor"
+				bind:value={floor}
+				required
+			>
+				<option value="">
+					Choose floor
+				</option>
+
+				<option>Ground Floor</option>
+				<option>1st Floor</option>
+				<option>2nd Floor</option>
+				<option>3rd Floor</option>
+				<option>4th Floor</option>
+				<option>5th Floor</option>
+				<option>6th Floor</option>
+				<option>7th Floor</option>
+				<option>8th Floor</option>
+				<option>9th Floor</option>
+				<option>10th Floor</option>
+				<option>11th Floor</option>
+				<option>12th Floor</option>
+				<option>13th Floor or above</option>
+			</select>
+		</div>
+
+	</div>
+
+
+	<div class="three-columns">
+
+		<div class="field">
+			<label for="area">
+				Area (m²) *
+			</label>
+
+			<input
+				id="area"
+				type="number"
+				min="1"
+				bind:value={areaSqm}
+				placeholder="Example: 75"
+				required
+			/>
+		</div>
+
+
+		<div class="field">
+			<label for="property-status">
+				Property status *
+			</label>
+
+			<select
+				id="property-status"
+				bind:value={propertyStatus}
+				required
+			>
+				<option value="">
+					Choose status
+				</option>
+
+				<option>New</option>
+				<option>Finished</option>
+				<option>Semi-finished</option>
+				<option>Used</option>
+				<option>Under Renovation</option>
+			</select>
+		</div>
+
+
+		<div class="field">
+			<label for="furnishing">
+				Furnishing
+			</label>
+
+			<select
+				id="furnishing"
+				bind:value={furnishing}
+			>
+				<option value="">
+					Choose
+				</option>
+
+				<option>Furnished</option>
+				<option>Semi-furnished</option>
+				<option>Unfurnished</option>
+			</select>
+		</div>
+
+	</div>
+
+
+	{#if listingType === 'For Rent'}
+
+		<div class="field">
+			<label for="rent-period">
+				Rent price period *
+			</label>
+
+			<select
+				id="rent-period"
+				bind:value={rentPeriod}
+				required
+			>
+				<option>Per Month</option>
+				<option>Per 3 Months</option>
+				<option>Per 6 Months</option>
+				<option>Per Year</option>
+			</select>
+		</div>
+
+	{/if}
+
+
+	<div class="field">
+
+		<label for="ownership-document">
+			Ownership / document information
+		</label>
+
+		<input
+			id="ownership-document"
+			bind:value={ownershipDocument}
+			placeholder="Example: Ownership certificate available"
+		/>
+
+	</div>
+						
+{:else if category === 'Real Estate'}
+
+    <!-- PASTE YOUR ENTIRE REAL ESTATE CODE HERE -->
+
+{:else if category === 'Other'}
+
+    <!-- Other fields -->
+
+{/if}
 						{:else if category === 'Other'}
 
 							<div class="two-columns">

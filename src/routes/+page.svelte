@@ -1,42 +1,74 @@
 <script>
+    import { language, translations } from  '$lib/i18n.js';
+
+	/** @type {'en' | 'am'} */
+let currentLanguage = $state('en');
+
+/** @param {'en' | 'am'} lang */
+function setLanguage(lang) {
+	currentLanguage = lang;
+	language.set(lang);
+}
+
+let t = $derived(translations[currentLanguage]);
+
 	let search = $state('');
+	let selectedCategory = $state('All');
+
+	const searchCategories = [
+    'All',
+    'Real Estate',
+    'Cars',
+    'Mobile Phones',
+    'Laptops',
+    'TV & Electronics',
+    'Home & Furniture',
+    'Other Items'
+];
 
 	const categories = [
-		{
-			name: 'Cars',
-			icon: '🚗',
-			description: 'New & used cars',
-			href: '/cars'
-		},
+    {
+        name: 'Real Estate',
+        icon: '🏠',
+        description: 'Houses, apartments, land & property',
+        href: '/products?category=Real%20Estate'
+    },
+    {
+        name: 'Cars',
+        icon: '🚗',
+        description: 'New & used cars',
+        href: '/products?category=Cars'
+    },
 		{
 			name: 'Mobile Phones',
 			icon: '📱',
 			description: 'Phones & accessories',
-			href: '/mobile'
+			href: '/products?category=Mobile%20Phones'
 		},
 		{
 			name: 'Laptops',
 			icon: '💻',
 			description: 'Laptops & computers',
-			href: '/laptops'
+			href: '/products?category=Laptops'
 		},
 		{
 			name: 'TV & Electronics',
 			icon: '📺',
 			description: 'TVs & electronics',
-			href: '/electronics'
+			href: '/products?category=TV%20%26%20Electronics'
 		},
 		{
 			name: 'Home & Furniture',
 			icon: '🛋️',
 			description: 'Furniture & home items',
-			href: '/home-items'
+			href: '/products?category=Home%20%26%20Furniture'
 		},
+		
 		{
 			name: 'Other Items',
 			icon: '📦',
 			description: 'Explore everything else',
-			href: '/products'
+			href: '/products?category=Other'
 		}
 	];
 
@@ -47,7 +79,7 @@
 			price: '1,850,000 ETB',
 			condition: 'Used',
 			location: 'Addis Ababa',
-			icon: '🚗'
+			image: 'https://images.unsplash.com/photo-1623869675781-80aa31012a5a?auto=format&fit=crop&w=900&q=80'
 		},
 		{
 			id: 2,
@@ -55,7 +87,7 @@
 			price: '78,000 ETB',
 			condition: 'Used',
 			location: 'Addis Ababa',
-			icon: '📱'
+			image: 'https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?auto=format&fit=crop&w=900&q=80'
 		},
 		{
 			id: 3,
@@ -63,7 +95,7 @@
 			price: '52,000 ETB',
 			condition: 'Used',
 			location: 'Addis Ababa',
-			icon: '💻'
+			image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80'
 		},
 		{
 			id: 4,
@@ -71,17 +103,26 @@
 			price: '46,500 ETB',
 			condition: 'New',
 			location: 'Addis Ababa',
-			icon: '📺'
+			image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=900&q=80'
 		}
 	];
 
 	function searchMarketplace() {
-		const query = search.trim();
+		const params = new URLSearchParams();
 
-		if (!query) return;
+		if (search.trim()) {
+			params.set('search', search.trim());
+		}
 
-		window.location.href =
-			`/products?search=${encodeURIComponent(query)}`;
+		if (selectedCategory !== 'All') {
+			params.set('category', selectedCategory);
+		}
+
+		const query = params.toString();
+
+		window.location.href = query
+			? `/products?${query}`
+			: '/products';
 	}
 </script>
 
@@ -108,16 +149,36 @@
 	</a>
 
 	<nav>
-		<a href="/">Home</a>
-		<a href="/products">Browse</a>
-		<a href="/cars">Cars</a>
-		<a href="/mobile">Phones</a>
-		<a href="/electronics">Electronics</a>
-	</nav>
+	<a href="/">{t.home}</a>
+	<a href="/products">{t.products}</a>
+	<a href="/products?category=Real%20Estate">{t.realEstate}</a>
+	<a href="/products?category=Cars">{t.cars}</a>
+	<a href="/products?category=Mobile%20Phones">{t.mobilePhones}</a>
+	<a href="/products?category=TV%20%26%20Electronics">{t.electronics}</a>
+</nav>
+	<div class="language-switcher">
+	<button
+		type="button"
+		class:active={currentLanguage === 'en'}
+		onclick={() => setLanguage('en')}
+	>
+		EN
+	</button>
+
+	<span>|</span>
+
+	<button
+		type="button"
+		class:active={currentLanguage === 'am'}
+		onclick={() => setLanguage('am')}
+	>
+		አማ
+	</button>
+</div>
 
 	<a class="sell-button" href="/sell">
-		+ Sell an Item
-	</a>
+	+ {t.sell}
+</a>
 </header>
 
 <main>
@@ -126,9 +187,9 @@
 			<p class="eyebrow">4KAZ MARKETPLACE</p>
 
 			<h1>
-				BUY IT.<br />
-				SELL IT. <span>FIND IT.</span>
-			</h1>
+	{t.buy.toUpperCase()}<br />
+	{t.sell.toUpperCase()} <span>{t.find.toUpperCase()}</span>
+</h1>
 
 			<p class="hero-description">
 				Discover new and used products from sellers across Ethiopia.
@@ -142,13 +203,28 @@
 					searchMarketplace();
 				}}
 			>
-				<span class="search-icon">⌕</span>
+				<select
+					bind:value={selectedCategory}
+					aria-label="Select category"
+				>
+					{#each searchCategories as category}
+						<option value={category}>
+							{category === 'All'
+								? 'All Categories'
+								: category}
+						</option>
+					{/each}
+				</select>
 
-				<input
-					bind:value={search}
-					type="search"
-					placeholder="Search cars, phones, laptops, TVs..."
-				/>
+				<div class="search-input">
+					<span>⌕</span>
+
+					<input
+						bind:value={search}
+						type="search"
+						placeholder="Search Real Estate',cars, phones, laptops, TVs..."
+					/>
+				</div>
 
 				<button type="submit">
 					Search
@@ -157,10 +233,25 @@
 
 			<div class="popular">
 				<span>Popular:</span>
-				<a href="/cars">Cars</a>
-				<a href="/mobile">Phones</a>
-				<a href="/laptops">Laptops</a>
-				<a href="/electronics">Electronics</a>
+				<a href="/products?category=Real%20Estate">
+    Real Estate
+</a>
+
+				<a href="/products?category=Cars">
+					Cars
+				</a>
+
+				<a href="/products?category=Mobile%20Phones">
+					Phones
+				</a>
+
+				<a href="/products?category=Laptops">
+					Laptops
+				</a>
+
+				<a href="/products?category=TV%20%26%20Electronics">
+					Electronics
+				</a>
 			</div>
 		</div>
 	</section>
@@ -203,7 +294,9 @@
 				<h2>Featured items</h2>
 			</div>
 
-			<a href="/products">Browse marketplace →</a>
+			<a href="/products">
+				Browse marketplace →
+			</a>
 		</div>
 
 		<div class="product-grid">
@@ -213,7 +306,11 @@
 					href={`/product/${product.id}`}
 				>
 					<div class="product-image">
-						<span>{product.icon}</span>
+						<img
+							src={product.image}
+							alt={product.title}
+							loading="lazy"
+						/>
 
 						<div class="condition">
 							{product.condition}
@@ -292,7 +389,8 @@
 	}
 
 	button,
-	input {
+	input,
+	select {
 		font-family: inherit;
 	}
 
@@ -421,25 +519,45 @@
 	}
 
 	.search-box {
-		width: min(800px, 100%);
+		width: min(950px, 100%);
 		margin: 30px auto 0;
 		display: flex;
-		align-items: center;
-		padding: 9px 9px 9px 20px;
+		align-items: stretch;
+		padding: 8px;
 		background: white;
 		border: 1px solid #e1e1e1;
 		border-radius: 12px;
 		box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
 	}
 
-	.search-icon {
+	.search-box select {
+		width: 195px;
+		padding: 0 16px;
+		border: 0;
+		border-right: 1px solid #ddd;
+		background: white;
+		outline: none;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.search-input {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+	}
+
+	.search-input span {
+		margin-left: 17px;
 		font-size: 26px;
 	}
 
-	.search-box input {
-		flex: 1;
+	.search-input input {
+		width: 100%;
 		min-width: 0;
-		padding: 18px;
+		padding: 18px 14px;
 		border: 0;
 		outline: 0;
 		font-size: 15px;
@@ -577,23 +695,33 @@
 		background: white;
 		color: #111;
 		text-decoration: none;
-		transition: transform 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	.product-card:hover {
 		transform: translateY(-4px);
+		box-shadow: 0 15px 30px rgba(0, 0, 0, 0.07);
 	}
 
 	.product-image {
 		height: 230px;
-		display: grid;
-		place-items: center;
 		position: relative;
+		overflow: hidden;
 		background: #eeeeeb;
 	}
 
-	.product-image > span {
-		font-size: 80px;
+	.product-image img {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+		transition: transform 0.35s ease;
+	}
+
+	.product-card:hover .product-image img {
+		transform: scale(1.04);
 	}
 
 	.condition {
@@ -725,6 +853,26 @@
 			letter-spacing: -4px;
 		}
 
+		.search-box {
+			flex-direction: column;
+			padding: 8px;
+		}
+
+		.search-box select {
+			width: 100%;
+			height: 52px;
+			border-right: 0;
+			border-bottom: 1px solid #ddd;
+		}
+
+		.search-input {
+			width: 100%;
+		}
+
+		.search-box button {
+			width: 100%;
+		}
+
 		.categories-section,
 		.featured-section {
 			padding: 65px 20px;
@@ -766,14 +914,6 @@
 		.category-grid,
 		.product-grid {
 			grid-template-columns: 1fr;
-		}
-
-		.search-box {
-			padding-left: 14px;
-		}
-
-		.search-box button {
-			padding: 15px 18px;
 		}
 
 		.product-image {
