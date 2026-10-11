@@ -24,6 +24,7 @@
 	let engineSize = $state('');
 	let bodyType = $state('');
 	let carColor = $state('');
+	let steeringPosition = $state('');
 	let previousOwners = $state('');
 	let accidentHistory = $state('');
 	let serviceHistory = $state('');
@@ -102,15 +103,19 @@
 	let otherWarranty = $state('');
 
 	// PHOTOS
+	/** @type {File[]} */
 	let images = $state([]);
+	/** @type {string[]} */
 	let imagePreviews = $state([]);
 
+	/** @param {Event} event */
 	function handleImages(event) {
-		const files = Array.from(event.currentTarget.files ?? []);
+		const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+		const files = Array.from(input.files ?? []);
 
 		if (files.length > 8) {
 			alert('You can upload a maximum of 8 photos.');
-			event.currentTarget.value = '';
+			input.value = '';
 			return;
 		}
 
@@ -123,6 +128,7 @@
 		);
 	}
 
+	/** @param {number} index */
 	function removeImage(index) {
 		URL.revokeObjectURL(imagePreviews[index]);
 
@@ -138,19 +144,20 @@
 			return {
 				brand: carBrand,
 				model: carModel,
-				year: carYear,
+				year: Number(carYear),
 				mileage:
 					condition === 'Used'
-						? mileage
+						? Number(mileage)
 						: null,
 				fuelType,
 				transmission,
 				engineSize,
 				bodyType,
 				color: carColor,
+				steeringPosition,
 				previousOwners:
 					condition === 'Used'
-						? previousOwners
+						? (previousOwners === '' ? null : Number(previousOwners))
 						: null,
 				accidentHistory:
 					condition === 'Used'
@@ -301,6 +308,9 @@
 		phone = '';
 
 		images = [];
+		carBrand = ''; carModel = ''; carYear = ''; mileage = ''; fuelType = '';
+		transmission = ''; engineSize = ''; bodyType = ''; carColor = '';
+		steeringPosition = ''; previousOwners = ''; accidentHistory = ''; serviceHistory = '';
 
 		imagePreviews.forEach((url) =>
 			URL.revokeObjectURL(url)
@@ -343,6 +353,7 @@
 		return uploadedUrls;
 	}
 
+	/** @param {SubmitEvent} event */
 	async function submitListing(event) {
 		event.preventDefault();
 
@@ -358,6 +369,11 @@
 			!phone.trim()
 		) {
 			errorMessage = 'Please complete all required fields.';
+			return;
+		}
+
+		if (category === 'Cars' && (!carBrand.trim() || !carModel.trim() || !fuelType || !transmission || !Number.isInteger(Number(carYear)) || Number(carYear) < 1900 || Number(carYear) > new Date().getFullYear() + 1 || (condition === 'Used' && (mileage === '' || Number(mileage) < 0 || !accidentHistory)))) {
+			errorMessage = 'Please complete the vehicle specifications with a valid year and mileage.';
 			return;
 		}
 
@@ -415,7 +431,7 @@
 			console.error('Listing submission error:', error);
 
 			errorMessage =
-				error?.message ??
+				(error instanceof Error ? error.message : null) ??
 				'Could not submit the listing. Please try again.';
 		} finally {
 			submitting = false;
@@ -604,6 +620,11 @@
 		/>
 	</div>
 {/if}
+
+				</div>
+			</div>
+
+			</div>
 
 			<!-- CATEGORY SPECIFICATIONS -->
 
@@ -858,6 +879,15 @@
 										placeholder="White"
 									/>
 								</div>
+							</div>
+
+							<div class="field">
+								<label for="steering-position">Steering position</label>
+								<select id="steering-position" bind:value={steeringPosition}>
+									<option value="">Choose steering position</option>
+									<option value="Left-hand drive">Left-hand drive</option>
+								<option value="Right-hand drive">Right-hand drive</option>
+							</select>
 							</div>
 
 						<!-- MOBILE PHONES -->
@@ -1605,7 +1635,6 @@
     value="Addis Ababa"
     disabled
 />
-			/>
 		</div>
 
 
@@ -1833,15 +1862,6 @@
 
 	</div>
 						
-{:else if category === 'Real Estate'}
-
-    <!-- PASTE YOUR ENTIRE REAL ESTATE CODE HERE -->
-
-{:else if category === 'Other'}
-
-    <!-- Other fields -->
-
-{/if}
 						{:else if category === 'Other'}
 
 							<div class="two-columns">
