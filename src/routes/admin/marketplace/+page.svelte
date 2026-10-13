@@ -82,8 +82,28 @@
 			.replace(/\b\w/g, (letter) => letter.toUpperCase());
 	}
 
-	onMount(loadListings);
-</script>
+onMount(async () => {
+    loading = true;
+
+    const { data: { user }, error: userError } =
+        await supabase.auth.getUser();
+
+    if (userError || !user) {
+        window.location.replace('/admin/login');
+        return;
+    }
+
+    const { data: isAdmin, error: adminError } =
+        await supabase.rpc('is_marketplace_admin');
+
+    if (adminError || isAdmin !== true) {
+        await supabase.auth.signOut();
+        window.location.replace('/admin/login');
+        return;
+    }
+
+    await loadListings();
+});</script>
 
 <svelte:head>
 	<title>Marketplace Admin | 4KAZ</title>
