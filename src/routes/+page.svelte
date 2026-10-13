@@ -702,7 +702,7 @@ let t = $derived(translations[currentLanguage]);
 
 </main>
 
-
+<a href="/admin/login">Admin login</a>
 
 <footer>
 
