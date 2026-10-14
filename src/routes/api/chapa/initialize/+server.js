@@ -48,7 +48,9 @@ export async function POST({ request, url }) {
 		 * Find the book on OUR SERVER.
 		 * We do NOT accept the price from the browser.
 		 */
-		const book = BOOKS[bookId];
+		const book = Object.hasOwn(BOOKS, bookId)
+  ? BOOKS[/** @type {keyof typeof BOOKS} */ (bookId)]
+  : undefined;
 
 		if (!book) {
 			return json(

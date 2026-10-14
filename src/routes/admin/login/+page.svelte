@@ -7,7 +7,7 @@
   let password = $state('');
   let loading = $state(false);
   let errorMessage = $state('');
-
+/** @param {SubmitEvent} event */
   async function login(event) {
     event.preventDefault();
     loading = true;

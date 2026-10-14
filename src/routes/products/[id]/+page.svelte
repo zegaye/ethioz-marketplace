@@ -3,7 +3,8 @@
   import { page } from '$app/state';
   import { supabase } from '$lib/supabase.js';
 
-  let product = $state(null);
+  /** @type {any} */
+let product = $state(null);
   let loading = $state(true);
   let errorMessage = $state('');
   let selectedImage = $state('');
@@ -55,13 +56,13 @@
       loading = false;
     }
   });
-
+/** @param {number | string | null | undefined} price */
   function formatPrice(price) {
     return new Intl.NumberFormat('en-US').format(
       Number(price ?? 0)
     );
   }
-
+/** @param {Record<string, any> | null | undefined} specifications */
   function getSpecifications(specifications) {
     if (
       !specifications ||

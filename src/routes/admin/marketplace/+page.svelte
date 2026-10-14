@@ -2,11 +2,12 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/supabase.js';
 
-	let listings = $state([]);
+	/** @type {any[]} */
+let listings = $state([]);
 	let loading = $state(true);
 	let errorMessage = $state('');
-	let updatingId = $state(null);
-
+/** @type {string | null} */
+let updatingId = $state(null);
 	async function loadListings() {
 		loading = true;
 		errorMessage = '';
@@ -28,7 +29,11 @@
 		loading = false;
 	}
 
-	async function updateStatus(id, status) {
+	/**
+ * @param {string} id
+ * @param {string} status
+ */
+async function updateStatus(id, status) {
 		updatingId = id;
 		errorMessage = '';
 
@@ -48,12 +53,13 @@
 		updatingId = null;
 	}
 
-	function formatPrice(price) {
+	/** @param {number | string | null | undefined} price */
+function formatPrice(price) {
 		return Number(price).toLocaleString('en-US');
 	}
 
-	function getMainImage(listing) {
-		if (
+/** @param {any} listing */
+function getMainImage(listing) {		if (
 			Array.isArray(listing.image_urls) &&
 			listing.image_urls.length > 0
 		) {
@@ -63,8 +69,8 @@
 		return null;
 	}
 
-	function specificationEntries(specifications) {
-		if (!specifications || typeof specifications !== 'object') {
+/** @param {Record<string, any> | null | undefined} specifications */
+function specificationEntries(specifications) {		if (!specifications || typeof specifications !== 'object') {
 			return [];
 		}
 
@@ -76,8 +82,8 @@
 		);
 	}
 
-	function formatLabel(key) {
-		return key
+/** @param {string} key */
+function formatLabel(key) {		return key
 			.replaceAll('_', ' ')
 			.replace(/\b\w/g, (letter) => letter.toUpperCase());
 	}
