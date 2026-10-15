@@ -885,6 +885,8 @@ function toggleFavorite(id) {
 
                                     </span>
 
+                                {:else}
+                                    <span class="real-listing">Sample item</span>
                                 {/if}
 
                                 <button
@@ -1937,5 +1939,79 @@ function toggleFavorite(id) {
     @media (max-width: 750px) { .car-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .car-filter-panel { padding: 20px; } }
 
     @media (max-width: 450px) { .car-filter-grid { grid-template-columns: 1fr; } .car-filter-heading { flex-direction: column; } }
+
+
+    /* 4KAZ colorful marketplace design - safe visual overrides */
+    :global(body) { background: #faf7ff; color: #211536; }
+    .navbar { background: rgba(255,255,255,.96); border-bottom: 1px solid #efe3ff; box-shadow: 0 5px 25px rgba(85,26,157,.08); backdrop-filter: blur(14px); }
+    .logo { background: linear-gradient(135deg,#7118e8,#ef3da2); border-radius: 15px; box-shadow: 0 8px 18px rgba(118,25,221,.22); }
+    .brand strong { color: #7216d9; }
+    nav a:hover, nav .active { color: #8421e7; }
+    .sell-button { background: linear-gradient(115deg,#7c1dea,#f035a4); border-radius: 13px; box-shadow: 0 8px 20px rgba(126,28,216,.22); transition: transform .2s ease; }
+    .sell-button:hover { transform: translateY(-2px); }
+    .page-header { position: relative; overflow: hidden; background: linear-gradient(115deg,#6913dd 0%,#a528e9 55%,#ed4b9f 100%); padding-top: 88px; padding-bottom: 76px; }
+    .page-header::before { content: ''; position: absolute; width: 340px; height: 340px; border-radius: 50%; background: rgba(255,255,255,.09); top: -170px; right: 8%; pointer-events: none; animation: floatGlow 9s ease-in-out infinite alternate; }
+    .page-header::after { content: ''; position: absolute; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,225,120,.13); bottom: -140px; left: 10%; pointer-events: none; animation: floatGlow 8s ease-in-out infinite alternate-reverse; }
+    .page-header .eyebrow { color: #ffe99d; }
+    .page-header h1 { position: relative; z-index: 1; text-shadow: 0 8px 24px rgba(55,0,105,.2); letter-spacing: -.05em; }
+    .page-header > p:last-child { position: relative; color: #fff; }
+    .marketplace { max-width: 1600px; margin: auto; }
+    .search-row { margin-top: -10px; position: relative; z-index: 2; }
+    .search-box, .search-row > select { border: 1px solid #e8d9ff; border-radius: 16px; box-shadow: 0 8px 25px rgba(100,38,162,.06); }
+    .search-box:focus-within { border-color: #8e30e9; box-shadow: 0 0 0 3px rgba(142,48,233,.13); }
+    .categories { border-bottom-color: #e9dfff; }
+    .categories button { background: #fff; border-color: #e5d7f8; color: #52366c; border-radius: 999px; transition: background .2s ease, transform .2s ease; }
+    .categories button:hover { transform: translateY(-2px); }
+    .categories button:hover, .categories .active-category { background: linear-gradient(115deg,#7d1fe5,#dc3fae); border-color: transparent; color: #fff; }
+    .results-heading h2 { color: #281441; }
+    .clear-button, .reset-car { border-color: #dfccf8; border-radius: 12px; color: #7620d5; }
+    .product-grid { gap: 22px; }
+    .product-card { border: 1px solid #ecdefb; border-radius: 22px; box-shadow: 0 8px 24px rgba(87,29,153,.07); transition: transform .25s ease, box-shadow .25s ease; }
+    .product-card:hover { transform: translateY(-8px); box-shadow: 0 22px 42px rgba(93,26,173,.16); }
+    .product-image { background: #f1eafa; }
+    .product-card:hover .product-image img { transform: scale(1.075); }
+    .condition { background: #6f1bdb; }
+    .condition.new-badge { background: #e7fff0; color: #166c40; }
+    .real-listing { background: #fff; color: #7121d8; }
+    .favorite { color: #8524e3; }
+    .favorite.is-saved { background: #ffe7f0; color: #d21d64; }
+    .product-details { padding: 20px; }
+    .product-details h3 { color: #24143a; }
+    .product-details strong { color: #7a1ce2; }
+    .category { color: #8d4abb; }
+    .negotiable { background: #f0e8ff; color: #7426bb; border-radius: 999px; }
+    .saved-toolbar button { border-color: #e5d7f8; border-radius: 999px; }
+    .saved-toolbar button.saved-active { background: #7b1de2; border-color: #7b1de2; }
+    .car-filter-panel { border-color: #e8dcfa; border-radius: 22px; box-shadow: 0 12px 30px rgba(85,29,153,.05); }
+    .car-filter-heading .filter-kicker { color: #8424df; }
+    .car-filter-grid input, .car-filter-grid select { border-color: #e5d9f5; border-radius: 10px; }
+    .car-filter-grid input:focus, .car-filter-grid select:focus { outline: 2px solid #aa66e8; outline-offset: 1px; }
+    .spinner { border-top-color: #8520e7; }
+    .status-box, .empty { border: 1px solid #e8d9f8; border-radius: 20px; }
+    .empty button { background: linear-gradient(115deg,#7c1dea,#ed3ca3); border-radius: 12px; }
+    footer { border-top-color: #e9dcf9; }
+    footer strong { color: #7020d0; }
+    @keyframes floatGlow { from { transform: translate(0,0); } to { transform: translate(-40px,30px); } }
+    @media (max-width: 750px) {
+        .navbar { gap: 10px; }
+        .page-header { padding-top: 60px; padding-bottom: 55px; }
+        .page-header h1 { letter-spacing: -.04em; }
+        .search-row { margin-top: 0; }
+        .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+        .product-image { height: 180px; }
+        .product-details { padding: 13px; }
+        .product-details h3 { font-size: 14px; }
+        .product-details strong { font-size: 16px; }
+        .favorite { width: 35px; height: 35px; }
+    }
+    @media (max-width: 420px) {
+        .product-image { height: 145px; }
+        .product-details { padding: 11px; }
+        .product-details h3 { font-size: 13px; }
+        .product-details strong { font-size: 14px; }
+        .condition { top: 8px; left: 8px; padding: 5px 7px; font-size: 9px; }
+        .real-listing { left: 8px; bottom: 8px; font-size: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .page-header::before, .page-header::after { animation: none; } .product-card, .product-image img { transition: none; } }
 
 </style>

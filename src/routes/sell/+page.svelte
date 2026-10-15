@@ -93,6 +93,35 @@
 	let ownershipDocument = $state('');
 	let rentPeriod = $state('Per Month');
 
+	let propertyCity = $state('Addis Ababa');
+	let propertyUse = $state('Residential');
+	let totalFloors = $state('');
+	let livingRooms = $state('');
+	let kitchens = $state('');
+	let parkingSpaces = $state('');
+	let landAreaSqm = $state('');
+	let buildingAreaSqm = $state('');
+	let constructionYear = $state('');
+	let waterSupply = $state('');
+	let electricity = $state('');
+/** @type {string[]} */
+let amenities = $state([]);
+	let accessRoad = $state('');
+	let propertyContactRole = $state('Owner');
+	let rentalDeposit = $state('');
+	let minimumRentalPeriod = $state('');
+	let availableFrom = $state('');
+	let serviceCharge = $state('');
+	let rentalTerms = $state('');
+	let landUse = $state('');
+	let plotDocument = $state('');
+	let propertyFeatures = ['Balcony', 'Terrace', 'Garden', 'Compound', 'Security guard', 'CCTV', 'Elevator', 'Generator', 'Water tank', 'Internet', 'Maid room', 'Storage room'];
+	let subCities = ['Bole', 'Yeka', 'Kirkos', 'Arada', 'Lideta', 'Gulele', 'Kolfe Keranio', 'Nifas Silk-Lafto', 'Akaki Kality', 'Lemi Kura'];
+	let houseTypes = ['G+0 House', 'G+1 House', 'G+2 House', 'G+3 House', 'G+4 House', 'G+5 House', 'G+6 House', 'G+7 House', 'G+8 House', 'G+9 House', 'G+10+ House'];
+	let isLand = $derived(propertyType === 'Land / Plot');
+	let isHouse = $derived(propertyType.startsWith('G+') || propertyType === 'Villa');
+
+
 	// OTHER
 	let otherBrand = $state('');
 	let otherModel = $state('');
@@ -260,20 +289,37 @@
 			return {
 				propertyType,
 				listingType,
-				city: 'Addis Ababa',
-				subCity,
-				specificLocation,
-				bedrooms,
-				bathrooms,
-				floor,
+				city: propertyCity.trim(),
+				subCity: propertyCity.trim().toLowerCase() === 'addis ababa' ? subCity : null,
+				specificLocation: specificLocation.trim(),
+				propertyUse,
+				bedrooms: isLand ? null : bedrooms,
+				bathrooms: isLand ? null : bathrooms,
+				floor: isLand || isHouse ? null : floor,
+				totalFloors: isLand ? null : totalFloors,
+				livingRooms: isLand ? null : livingRooms,
+				kitchens: isLand ? null : kitchens,
+				parkingSpaces: isLand ? null : parkingSpaces,
 				areaSqm,
-				propertyStatus,
-				furnishing,
+				landAreaSqm: landAreaSqm || null,
+				buildingAreaSqm: isLand ? null : (buildingAreaSqm || null),
+				constructionYear: isLand ? null : (constructionYear || null),
+				propertyStatus: isLand ? null : propertyStatus,
+				furnishing: isLand ? null : furnishing,
+				waterSupply: isLand ? null : waterSupply,
+				electricity: isLand ? null : electricity,
+				amenities: isLand ? [] : amenities,
+				accessRoad,
+				propertyContactRole,
 				ownershipDocument,
-				rentPeriod:
-					listingType === 'For Rent'
-						? rentPeriod
-						: null
+				landUse: isLand ? landUse : null,
+				plotDocument: isLand ? plotDocument : null,
+				rentPeriod: listingType === 'For Rent' ? rentPeriod : null,
+				rentalDeposit: listingType === 'For Rent' ? (rentalDeposit || null) : null,
+				minimumRentalPeriod: listingType === 'For Rent' ? (minimumRentalPeriod || null) : null,
+				availableFrom: listingType === 'For Rent' ? (availableFrom || null) : null,
+				serviceCharge: listingType === 'For Rent' ? (serviceCharge || null) : null,
+				rentalTerms: listingType === 'For Rent' ? (rentalTerms || null) : null
 			};
 		}
 		if (category === 'Other') {
@@ -317,6 +363,16 @@
 		);
 
 		imagePreviews = [];
+		propertyType = ''; listingType = 'For Sale'; propertyCity = 'Addis Ababa';
+		subCity = ''; specificLocation = ''; propertyUse = 'Residential';
+		bedrooms = ''; bathrooms = ''; floor = ''; areaSqm = '';
+		propertyStatus = ''; furnishing = ''; ownershipDocument = '';
+		rentPeriod = 'Per Month'; totalFloors = ''; livingRooms = ''; kitchens = '';
+		parkingSpaces = ''; landAreaSqm = ''; buildingAreaSqm = '';
+		constructionYear = ''; waterSupply = ''; electricity = ''; amenities = [];
+		accessRoad = ''; propertyContactRole = 'Owner'; rentalDeposit = '';
+		minimumRentalPeriod = ''; availableFrom = ''; serviceCharge = '';
+		rentalTerms = ''; landUse = ''; plotDocument = '';
 	}
 
 	async function uploadImages() {
@@ -377,6 +433,16 @@
 			return;
 		}
 
+		if (category === 'Real Estate') {
+			if (!propertyType || !propertyCity.trim() || !specificLocation.trim() || !areaSqm || Number(areaSqm) <= 0 ||
+				(propertyCity.trim().toLowerCase() === 'addis ababa' && !subCity) ||
+				(!isLand && (!bedrooms || !propertyStatus)) ||
+				(!isLand && !isHouse && !floor)) {
+				errorMessage = 'Please complete the required property details.';
+				return;
+			}
+		}
+
 		if (images.length === 0) {
 			errorMessage = 'Please add at least one product photo.';
 			return;
@@ -394,25 +460,58 @@
 		try {
 			const specifications = buildSpecifications();
 
-			// Upload all selected photos first.
+      // Identify the currently logged-in seller.
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        throw new Error(
+          'Please log in before registering a product.'
+        );
+      }
+
+      // Check the seller's verification status.
+      const { data: seller, error: sellerError } =
+        await supabase
+          .from('seller_profiles')
+          .select('id, verification_status')
+          .eq('id', authData.user.id)
+          .single();
+
+      if (sellerError || !seller) {
+        throw new Error(
+          'Seller profile not found. Please register first.'
+        );
+      }
+
+      if (seller.verification_status !== 'verified') {
+        throw new Error(
+          'Your seller account must be verified before registering products.'
+        );
+      }
+
+
+			// Upload images only after confirming the seller is verified.
 			const imageUrls = await uploadImages();
 
-			// Then save the listing with the real Supabase Storage URLs.
-			const { error } = await supabase
-				.from('marketplace_listings')
-				.insert({
-					title: title.trim(),
-					category,
-					condition,
-					price: numericPrice,
-					negotiable: negotiable === 'Yes',
-					location: location.trim(),
-					description: description.trim(),
-					seller_phone: phone.trim(),
-					specifications,
-					image_urls: imageUrls,
-					status: 'pending'
-				});
+      // Save the product and link it to the seller.
+      const { error } = await supabase
+        .from('marketplace_listings')
+        .insert({
+          seller_id: seller.id,
+          title: title.trim(),
+          category,
+          condition,
+          price: numericPrice,
+          negotiable: negotiable === 'Yes',
+          location: location.trim(),
+          description: description.trim(),
+          seller_phone: phone.trim(),
+          specifications,
+          image_urls: imageUrls,
+          status: 'pending'
+        });
+
 
 			if (error) {
 				throw error;
@@ -489,7 +588,7 @@
 		<h1>Sell your item.</h1>
 
 		<p>
-			Tell buyers exactly what you're selling.
+			List products and properties with the details buyers and tenants need.
 		</p>
 	</section>
 
@@ -536,7 +635,7 @@
 						<input
 							id="title"
 							bind:value={title}
-							placeholder="Example: Toyota Corolla 2020"
+							placeholder="Example: G+4 House for Rent in Bole"
 							maxlength="120"
 							required
 						/>
@@ -1564,304 +1663,51 @@
 								</select>
 							</div>
 {:else if category === 'Real Estate'}
-
-	<div class="property-heading">
-		<h3>🏠 Property information</h3>
-		<p>
-			Enter the condominium information buyers or
-			tenants need.
-		</p>
-	</div>
-
-	<div class="two-columns">
-
-		<div class="field">
-			<label for="property-type">
-				Condominium type *
-			</label>
-
-			<select
-				id="property-type"
-				bind:value={propertyType}
-				required
-			>
-				<option value="">
-					Choose condominium type
-				</option>
-
-				<option value="Condominium 20/80">
-					Condominium 20/80
-				</option>
-
-				<option value="Condominium 40/60">
-					Condominium 40/60
-				</option>
-			</select>
-		</div>
-
-
-		<div class="field">
-			<label for="listing-type">
-				Listing type *
-			</label>
-
-			<select
-				id="listing-type"
-				bind:value={listingType}
-				required
-			>
-				<option value="For Sale">
-					For Sale
-				</option>
-
-				<option value="For Rent">
-					For Rent
-				</option>
-			</select>
-		</div>
-
-	</div>
-
-
-	<div class="three-columns">
-
-		<div class="field">
-			<label for="property-city">
-    City
-</label>
-
-<input
-    id="property-city"
-    value="Addis Ababa"
-    disabled
-/>
-		</div>
-
-
-		<div class="field">
-			<label for="sub-city">
-				Sub-city *
-			</label>
-
-			<select
-				id="sub-city"
-				bind:value={subCity}
-				required
-			>
-				<option value="">
-					Choose sub-city
-				</option>
-
-				<option>Bole</option>
-				<option>Yeka</option>
-				<option>Kirkos</option>
-				<option>Arada</option>
-				<option>Lideta</option>
-				<option>Gulele</option>
-				<option>Kolfe Keranio</option>
-				<option>Nifas Silk-Lafto</option>
-				<option>Akaki Kality</option>
-				<option>Lemi Kura</option>
-			</select>
-		</div>
-
-
-		<div class="field">
-			<label for="specific-location">
-				Specific location *
-			</label>
-
-			<input
-				id="specific-location"
-				bind:value={specificLocation}
-				placeholder="Example: Bole Bulbula"
-				required
-			/>
-		</div>
-
-	</div>
-
-
-	<div class="three-columns">
-
-		<div class="field">
-			<label for="bedrooms">
-				Bedrooms *
-			</label>
-
-			<select
-				id="bedrooms"
-				bind:value={bedrooms}
-				required
-			>
-				<option value="">
-					Choose
-				</option>
-
-				<option>Studio</option>
-				<option>1</option>
-				<option>2</option>
-				<option>3</option>
-				<option>4</option>
-				<option>5+</option>
-			</select>
-		</div>
-
-
-		<div class="field">
-			<label for="bathrooms">
-				Bathrooms
-			</label>
-
-			<select
-				id="bathrooms"
-				bind:value={bathrooms}
-			>
-				<option value="">
-					Choose
-				</option>
-
-				<option>1</option>
-				<option>2</option>
-				<option>3</option>
-				<option>4+</option>
-			</select>
-		</div>
-
-
-		<div class="field">
-			<label for="floor">
-				Floor *
-			</label>
-
-			<select
-				id="floor"
-				bind:value={floor}
-				required
-			>
-				<option value="">
-					Choose floor
-				</option>
-
-				<option>Ground Floor</option>
-				<option>1st Floor</option>
-				<option>2nd Floor</option>
-				<option>3rd Floor</option>
-				<option>4th Floor</option>
-				<option>5th Floor</option>
-				<option>6th Floor</option>
-				<option>7th Floor</option>
-				<option>8th Floor</option>
-				<option>9th Floor</option>
-				<option>10th Floor</option>
-				<option>11th Floor</option>
-				<option>12th Floor</option>
-				<option>13th Floor or above</option>
-			</select>
-		</div>
-
-	</div>
-
-
-	<div class="three-columns">
-
-		<div class="field">
-			<label for="area">
-				Area (m²) *
-			</label>
-
-			<input
-				id="area"
-				type="number"
-				min="1"
-				bind:value={areaSqm}
-				placeholder="Example: 75"
-				required
-			/>
-		</div>
-
-
-		<div class="field">
-			<label for="property-status">
-				Property status *
-			</label>
-
-			<select
-				id="property-status"
-				bind:value={propertyStatus}
-				required
-			>
-				<option value="">
-					Choose status
-				</option>
-
-				<option>New</option>
-				<option>Finished</option>
-				<option>Semi-finished</option>
-				<option>Used</option>
-				<option>Under Renovation</option>
-			</select>
-		</div>
-
-
-		<div class="field">
-			<label for="furnishing">
-				Furnishing
-			</label>
-
-			<select
-				id="furnishing"
-				bind:value={furnishing}
-			>
-				<option value="">
-					Choose
-				</option>
-
-				<option>Furnished</option>
-				<option>Semi-furnished</option>
-				<option>Unfurnished</option>
-			</select>
-		</div>
-
-	</div>
-
-
-	{#if listingType === 'For Rent'}
-
-		<div class="field">
-			<label for="rent-period">
-				Rent price period *
-			</label>
-
-			<select
-				id="rent-period"
-				bind:value={rentPeriod}
-				required
-			>
-				<option>Per Month</option>
-				<option>Per 3 Months</option>
-				<option>Per 6 Months</option>
-				<option>Per Year</option>
-			</select>
-		</div>
-
-	{/if}
-
-
-	<div class="field">
-
-		<label for="ownership-document">
-			Ownership / document information
-		</label>
-
-		<input
-			id="ownership-document"
-			bind:value={ownershipDocument}
-			placeholder="Example: Ownership certificate available"
-		/>
-
-	</div>
-						
+						<div class="property-heading"><h3>🏠 Property information</h3><p>List a condominium, G+ house, villa, apartment, commercial building or land for sale or rent.</p></div>
+						<div class="two-columns"><div class="field"><label for="re-propertyType">Property type *</label><select id="re-propertyType" bind:value={propertyType} required><option value="">Choose property type</option><option>Condominium 10/90</option><option>Condominium 20/80</option><option>Condominium 40/60</option>{#each houseTypes as house}<option value={house}>{house}</option>{/each}<option>Villa</option><option>Apartment</option><option>Commercial Building</option><option>Land / Plot</option><option>Other Property</option></select></div><div class="field"><label for="re-listingType">Listing purpose *</label><select id="re-listingType" bind:value={listingType} required><option>For Sale</option><option>For Rent</option></select></div></div>
+						<div class="three-columns">
+						<div class="field"><label for="re-propertyCity">City / town *</label><input id="re-propertyCity" bind:value={propertyCity} placeholder="Addis Ababa, Adama, Bahir Dar..." required /></div>
+						{#if propertyCity.trim().toLowerCase() === 'addis ababa'}<div class="field"><label for="re-subCity">Sub-city *</label><select id="re-subCity" bind:value={subCity} required><option value="">Choose sub-city</option>{#each subCities as sub}<option value={sub}>{sub}</option>{/each}</select></div>{/if}
+						<div class="field"><label for="re-specificLocation">Neighborhood / specific location *</label><input id="re-specificLocation" bind:value={specificLocation} placeholder="Bole Bulbula" required /></div>
+						</div>
+						<div class="three-columns">
+						<div class="field"><label for="re-propertyUse">Property use</label><select id="re-propertyUse" bind:value={propertyUse}><option value="">Choose</option><option value="Residential">Residential</option><option value="Commercial">Commercial</option><option value="Mixed use">Mixed use</option><option value="Industrial">Industrial</option><option value="Agricultural">Agricultural</option></select></div>
+						<div class="field"><label for="re-propertyContactRole">Contact role</label><select id="re-propertyContactRole" bind:value={propertyContactRole}><option value="">Choose</option><option value="Owner">Owner</option><option value="Agent / Broker">Agent / Broker</option><option value="Property Manager">Property Manager</option><option value="Developer">Developer</option></select></div>
+						<div class="field"><label for="re-accessRoad">Road access</label><select id="re-accessRoad" bind:value={accessRoad}><option value="">Choose</option><option value="Asphalt">Asphalt</option><option value="Cobblestone">Cobblestone</option><option value="Gravel">Gravel</option><option value="Dirt road">Dirt road</option><option value="Other">Other</option></select></div>
+						</div>
+						{#if isLand}<div class="property-heading"><h3>Land / plot details</h3></div><div class="three-columns">
+						<div class="field"><label for="re-areaSqm">Land / plot area (m²) *</label><input id="re-areaSqm" type="number" bind:value={areaSqm} placeholder="Example: 500" min="1" step="any" required /></div>
+						<div class="field"><label for="re-landUse">Land use / zoning</label><select id="re-landUse" bind:value={landUse}><option value="">Choose</option><option value="Residential">Residential</option><option value="Commercial">Commercial</option><option value="Mixed use">Mixed use</option><option value="Agricultural">Agricultural</option><option value="Industrial">Industrial</option><option value="Other">Other</option></select></div>
+						<div class="field"><label for="re-plotDocument">Plot document / lease information</label><input id="re-plotDocument" bind:value={plotDocument} placeholder="Lease certificate / title information" /></div>
+						</div>{:else}<div class="property-heading"><h3>Building & room details</h3></div><div class="three-columns">
+						<div class="field"><label for="re-bedrooms">Bedrooms *</label><select id="re-bedrooms" bind:value={bedrooms} required><option value="">Choose</option><option value="Studio">Studio</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10+">10+</option></select></div>
+						<div class="field"><label for="re-bathrooms">Bathrooms</label><select id="re-bathrooms" bind:value={bathrooms}><option value="">Choose</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10+">10+</option></select></div>
+						<div class="field"><label for="re-livingRooms">Living rooms</label><select id="re-livingRooms" bind:value={livingRooms}><option value="">Choose</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5+">5+</option></select></div>
+						<div class="field"><label for="re-kitchens">Kitchens</label><select id="re-kitchens" bind:value={kitchens}><option value="">Choose</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5+">5+</option></select></div>
+						{#if !isHouse}
+						<div class="field"><label for="re-floor">Unit / apartment floor *</label><select id="re-floor" bind:value={floor} required><option value="">Choose</option><option value="Ground Floor">Ground Floor</option><option value="1st Floor">1st Floor</option><option value="2nd Floor">2nd Floor</option><option value="3rd Floor">3rd Floor</option><option value="4th Floor">4th Floor</option><option value="5th Floor">5th Floor</option><option value="6th Floor">6th Floor</option><option value="7th Floor">7th Floor</option><option value="8th Floor">8th Floor</option><option value="9th Floor">9th Floor</option><option value="10th Floor">10th Floor</option><option value="11th Floor">11th Floor</option><option value="12th Floor">12th Floor</option><option value="13th Floor or above">13th Floor or above</option></select></div>
+						{/if}
+						<div class="field"><label for="re-totalFloors">Total building floors</label><input id="re-totalFloors" type="number" bind:value={totalFloors} placeholder="Example: 5 for G+4" min="1" step="1" /></div>
+						<div class="field"><label for="re-areaSqm">Usable / advertised area (m²) *</label><input id="re-areaSqm" type="number" bind:value={areaSqm} placeholder="Example: 300" min="1" step="any" required /></div>
+						<div class="field"><label for="re-buildingAreaSqm">Building floor area (m²)</label><input id="re-buildingAreaSqm" type="number" bind:value={buildingAreaSqm} placeholder="Example: 450" min="1" step="any" /></div>
+						<div class="field"><label for="re-landAreaSqm">Land / compound area (m²)</label><input id="re-landAreaSqm" type="number" bind:value={landAreaSqm} placeholder="Example: 250" min="1" step="any" /></div>
+						<div class="field"><label for="re-parkingSpaces">Parking spaces</label><input id="re-parkingSpaces" type="number" bind:value={parkingSpaces} placeholder="Example: 2" min="0" step="1" /></div>
+						<div class="field"><label for="re-constructionYear">Construction year</label><input id="re-constructionYear" type="number" bind:value={constructionYear} placeholder="Example: 2021" min="1900" max="2100" step="1" /></div>
+						<div class="field"><label for="re-propertyStatus">Property condition *</label><select id="re-propertyStatus" bind:value={propertyStatus} required><option value="">Choose</option><option value="New">New</option><option value="Finished">Finished</option><option value="Semi-finished">Semi-finished</option><option value="Used">Used</option><option value="Under Renovation">Under Renovation</option></select></div>
+						<div class="field"><label for="re-furnishing">Furnishing</label><select id="re-furnishing" bind:value={furnishing}><option value="">Choose</option><option value="Furnished">Furnished</option><option value="Semi-furnished">Semi-furnished</option><option value="Unfurnished">Unfurnished</option></select></div>
+						<div class="field"><label for="re-waterSupply">Water supply</label><select id="re-waterSupply" bind:value={waterSupply}><option value="">Choose</option><option value="Municipal">Municipal</option><option value="Well / Borehole">Well / Borehole</option><option value="Both">Both</option><option value="Other">Other</option><option value="Unknown">Unknown</option></select></div>
+						<div class="field"><label for="re-electricity">Electricity</label><select id="re-electricity" bind:value={electricity}><option value="">Choose</option><option value="Connected">Connected</option><option value="Not connected">Not connected</option><option value="Solar">Solar</option><option value="Generator only">Generator only</option><option value="Other">Other</option></select></div>
+						</div><div class="field"><div class="field-heading">Facilities / amenities</div><div class="amenity-grid">{#each propertyFeatures as feature}<label class="amenity-choice"><input type="checkbox" value={feature} bind:group={amenities} /> {feature}</label>{/each}</div></div>{/if}
+						{#if listingType === 'For Rent'}<div class="property-heading"><h3>Rental terms</h3><p>Enter the rent amount in the Price (ETB) field below.</p></div><div class="three-columns">
+						<div class="field"><label for="re-rentPeriod">Rent price period *</label><select id="re-rentPeriod" bind:value={rentPeriod} required><option value="">Choose</option><option value="Per Month">Per Month</option><option value="Per 3 Months">Per 3 Months</option><option value="Per 6 Months">Per 6 Months</option><option value="Per Year">Per Year</option></select></div>
+						<div class="field"><label for="re-rentalDeposit">Security deposit (ETB)</label><input id="re-rentalDeposit" type="number" bind:value={rentalDeposit} placeholder="Example: 50000" min="0" step="any" /></div>
+						<div class="field"><label for="re-minimumRentalPeriod">Minimum rental period</label><input id="re-minimumRentalPeriod" bind:value={minimumRentalPeriod} placeholder="Example: 1 year" /></div>
+						<div class="field"><label for="re-availableFrom">Available from</label><input id="re-availableFrom" type="date" bind:value={availableFrom} /></div>
+						<div class="field"><label for="re-serviceCharge">Service charge (ETB)</label><input id="re-serviceCharge" type="number" bind:value={serviceCharge} placeholder="If applicable" min="0" step="any" /></div>
+						</div>
+						<div class="field"><label for="re-rentalTerms">Other rental terms</label><input id="re-rentalTerms" bind:value={rentalTerms} placeholder="Advance payment, restrictions, utilities included..." /></div>
+						{/if}
+						<div class="field"><label for="re-ownershipDocument">Ownership / legal document information</label><input id="re-ownershipDocument" bind:value={ownershipDocument} placeholder="Example: Ownership certificate available; do not enter document numbers" /></div>
 						{:else if category === 'Other'}
 
 							<div class="two-columns">
@@ -1978,7 +1824,7 @@
 					<div class="three-columns">
 						<div class="field">
 							<label for="price">
-								Price (ETB) *
+								{category === 'Real Estate' && listingType === 'For Rent' ? 'Rent (ETB) *' : 'Price (ETB) *'}
 							</label>
 
 							<input
@@ -2049,10 +1895,10 @@
 				</div>
 
 				<div class="section-content">
-					<h2>Product photos</h2>
+					<h2>Photos</h2>
 
 					<p class="section-description">
-						Add up to 8 clear photos.
+						Add up to 8 clear photos of your item or property.
 						For used items, show the real condition.
 					</p>
 
@@ -2069,7 +1915,7 @@
 						</div>
 
 						<strong>
-							Add product photos
+							Add photos
 						</strong>
 
 						<span>
@@ -2662,4 +2508,8 @@
 			display: none;
 		}
 	}
+
+	.amenity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 10px; margin-top: 10px; }
+	.amenity-choice { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+	.amenity-choice input { width: auto; }
 </style>

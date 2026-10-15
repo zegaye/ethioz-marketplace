@@ -317,8 +317,8 @@ let product = $state(null);
 <style>
   :global(body) {
     margin: 0;
-    background: #f5f5f5;
-    color: #161616;
+    background: #faf7ff;
+    color: #201437;
     font-family:
       Arial,
       Helvetica,
@@ -614,4 +614,31 @@ let product = $state(null);
       font-size: 29px;
     }
   }
+
+  /* 4KAZ colorful product detail enhancement */
+  .page { animation: pageEnter .55s ease both; }
+  .back { color: #7a22d9; transition: transform .2s ease; }
+  .back:hover { transform: translateX(-4px); }
+  .main-image { border: 1px solid #eadfff; border-radius: 26px; box-shadow: 0 16px 45px rgba(107,37,184,.08); background: linear-gradient(140deg,#fff,#faf5ff); }
+  .main-image img { transition: transform .45s ease; }
+  .main-image:hover img { transform: scale(1.045); }
+  .details { border: 1px solid #e9dfff; border-radius: 26px; box-shadow: 0 16px 45px rgba(107,37,184,.08); }
+  .seller-listing { background: linear-gradient(110deg,#7a1ce9,#eb39a1); }
+  .condition { background: #fff0d9; color: #783f0a; }
+  .category { color: #8525d8; }
+  .price { color: #7b1de1; }
+  .negotiable { background: #e5f9ee; color: #137345; border-radius: 999px; }
+  .information div { background: #f5efff; border: 1px solid #ede2ff; border-radius: 14px; }
+  .information strong, .specification strong { overflow-wrap: anywhere; }
+  .specifications { border-color: #e8dcff; border-radius: 14px; }
+  .specification { border-bottom-color: #eee5ff; }
+  .seller-box { background: linear-gradient(130deg,#f2eaff,#fff0f8); border: 1px solid #ead9ff; border-radius: 20px; }
+  .contact-button, .browse-button { background: linear-gradient(115deg,#7d1bea,#ec3c9e); border-radius: 13px; box-shadow: 0 9px 23px rgba(129,34,210,.22); transition: transform .2s ease, box-shadow .2s ease; }
+  .contact-button:hover, .browse-button:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(129,34,210,.28); }
+  .thumbnails button { border-radius: 14px; transition: transform .2s ease; }
+  .thumbnails button:hover { transform: translateY(-3px); }
+  .thumbnails button.active { border-color: #8525e8; }
+  .message-box { border: 1px solid #eadfff; box-shadow: 0 12px 36px rgba(107,37,184,.08); }
+  @keyframes pageEnter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .page, .main-image img { animation: none; transition: none; } }
 </style>
