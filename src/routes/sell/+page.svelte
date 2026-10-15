@@ -463,18 +463,15 @@ let amenities = $state([]);
       // Identify the currently logged-in seller.
       const { data: authData, error: authError } =
         await supabase.auth.getUser();
-
-      if (authError || !authData.user) {
-        throw new Error(
-          'Please log in before registering a product.'
-        );
-      }
-
-      // Check the seller's verification status.
+if (!authData.user) {
+  throw new Error('Please log in or register before listing a product.');
+}
+           
+      // Confirm that the logged-in user has a seller profile.
       const { data: seller, error: sellerError } =
         await supabase
           .from('seller_profiles')
-          .select('id, verification_status')
+          .select('id')
           .eq('id', authData.user.id)
           .single();
 
@@ -484,17 +481,11 @@ let amenities = $state([]);
         );
       }
 
-      if (seller.verification_status !== 'verified') {
-        throw new Error(
-          'Your seller account must be verified before registering products.'
-        );
-      }
+      // Registered sellers may submit products immediately.
+      // Seller verification is not required for submission.
+      const imageUrls = await uploadImages();
 
-
-			// Upload images only after confirming the seller is verified.
-			const imageUrls = await uploadImages();
-
-      // Save the product and link it to the seller.
+      // Save the listing for administrator approval.
       const { error } = await supabase
         .from('marketplace_listings')
         .insert({
@@ -512,6 +503,9 @@ let amenities = $state([]);
           status: 'pending'
         });
 
+      if (error) {
+        throw error;
+      }
 
 			if (error) {
 				throw error;
@@ -1698,7 +1692,7 @@ let amenities = $state([]);
 						<div class="field"><label for="re-waterSupply">Water supply</label><select id="re-waterSupply" bind:value={waterSupply}><option value="">Choose</option><option value="Municipal">Municipal</option><option value="Well / Borehole">Well / Borehole</option><option value="Both">Both</option><option value="Other">Other</option><option value="Unknown">Unknown</option></select></div>
 						<div class="field"><label for="re-electricity">Electricity</label><select id="re-electricity" bind:value={electricity}><option value="">Choose</option><option value="Connected">Connected</option><option value="Not connected">Not connected</option><option value="Solar">Solar</option><option value="Generator only">Generator only</option><option value="Other">Other</option></select></div>
 						</div><div class="field"><div class="field-heading">Facilities / amenities</div><div class="amenity-grid">{#each propertyFeatures as feature}<label class="amenity-choice"><input type="checkbox" value={feature} bind:group={amenities} /> {feature}</label>{/each}</div></div>{/if}
-						{#if listingType === 'For Rent'}<div class="property-heading"><h3>Rental terms</h3><p>Enter the rent amount in the Price (ETB) field below.</p></div><div class="three-columns">
+						S{#if listingType === 'For Rent'}<div class="property-heading"><h3>Rental terms</h3><p>Enter the rent amount in the Price (ETB) field below.</p></div><div class="three-columns">
 						<div class="field"><label for="re-rentPeriod">Rent price period *</label><select id="re-rentPeriod" bind:value={rentPeriod} required><option value="">Choose</option><option value="Per Month">Per Month</option><option value="Per 3 Months">Per 3 Months</option><option value="Per 6 Months">Per 6 Months</option><option value="Per Year">Per Year</option></select></div>
 						<div class="field"><label for="re-rentalDeposit">Security deposit (ETB)</label><input id="re-rentalDeposit" type="number" bind:value={rentalDeposit} placeholder="Example: 50000" min="0" step="any" /></div>
 						<div class="field"><label for="re-minimumRentalPeriod">Minimum rental period</label><input id="re-minimumRentalPeriod" bind:value={minimumRentalPeriod} placeholder="Example: 1 year" /></div>
@@ -2512,4 +2506,57 @@ let amenities = $state([]);
 	.amenity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 10px; margin-top: 10px; }
 	.amenity-choice { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 	.amenity-choice input { width: auto; }
+
+
+	/* 4KAZ purple brand theme — presentation only; listing logic unchanged */
+	:global(body) {
+		background: #f5f2ff;
+		color: #20163b;
+	}
+	.navbar { background: #fff; border-bottom-color: #e7defe; box-shadow: 0 3px 18px rgba(79, 34, 168, .06); }
+	.brand, nav a { color: #28194a; }
+	.brand strong { color: #6428ed; }
+	.brand small { color: #796c96; }
+	.logo { background: linear-gradient(135deg, #5421d9, #8c4bff); }
+	nav a:hover { color: #6428ed; opacity: 1; }
+	.browse-button { background: #6428ed; color: #fff; }
+	.browse-button:hover { background: #4b19bb; }
+	.heading {
+		background: linear-gradient(120deg, #28105f 0%, #5720c5 54%, #8d4aff 100%);
+		color: white;
+	}
+	.eyebrow { color: #dac7ff; }
+	.heading > p:last-child { color: #f0e8ff; }
+	.form-section { background: #fff; border-color: #e8dffc; box-shadow: 0 7px 28px rgba(65, 31, 130, .05); }
+	.specification-section { border: 2px solid #7b43f1; }
+	.section-number { background: linear-gradient(135deg, #5822d9, #8d4aff); }
+	.section-content h2 { color: #2e195c; }
+	.section-description, .used-box > p { color: #76698d; }
+	.field label, .field-heading { color: #39235f; }
+	.field input, .field select, .field textarea {
+		border-color: #d9cdef;
+		background: #fff;
+		color: #24153f;
+	}
+	.field input:focus, .field select:focus, .field textarea:focus {
+		border-color: #7540ec;
+		box-shadow: 0 0 0 3px rgba(117, 64, 236, .13);
+	}
+	.used-box { background: #f5f0ff; border-left-color: #7440ec; }
+	.upload-box { border-color: #bda4f8; background: #faf7ff; }
+	.upload-box:hover { border-color: #7540ec; background: #f2ebff; }
+	.upload-icon { background: #6b31e6; }
+	.main-photo { background: #6b31e6; }
+	.submit-area { background: linear-gradient(110deg, #351174, #6c2ee5); }
+	.submit-area p { color: #e0ceff; }
+	.submit-area button { background: #fff; color: #5720c5; }
+	.submit-area button:hover:not(:disabled) { background: #eee4ff; }
+	.property-heading { margin-top: 24px; padding: 14px 18px; border-radius: 10px; background: #f5f0ff; border-left: 4px solid #7440ec; }
+	.property-heading h3 { margin: 0 0 5px; color: #4a1baf; }
+	.property-heading p { margin: 0; color: #695782; font-size: 13px; line-height: 1.5; }
+	.amenity-choice { color: #38235e; }
+	.amenity-choice input { accent-color: #7135e8; }
+	footer { border-top-color: #e7defe; }
+	footer strong { color: #5b24d7; }
+
 </style>

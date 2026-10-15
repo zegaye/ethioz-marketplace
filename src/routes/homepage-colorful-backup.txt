@@ -1,0 +1,184 @@
+<script>
+  // Svelte 5-compatible homepage. Pass existing approved listings from your +page.server.js
+  // as `data.products` (or adapt the mapping below to your existing load result).
+  let { data = {} } = $props();
+
+  let menuOpen = $state(false);
+  let search = $state('');
+  let activeCategory = $state('All');
+
+  const routes = {
+    home: '/',
+    listings: '/cars',
+    sell: '/sell',
+    signup: '/signup',
+    login: '/login',
+    about: '/about',
+    contact: '/contact'
+  };
+
+  const categories = [
+    { name: 'All', emoji: '✨', tone: 'violet' },
+    { name: 'Cars', emoji: '🚗', tone: 'orange' },
+    { name: 'Mobiles', emoji: '📱', tone: 'pink' },
+    { name: 'Electronics', emoji: '💻', tone: 'blue' },
+    { name: 'Fashion', emoji: '👟', tone: 'green' },
+    { name: 'Homes', emoji: '🛋️', tone: 'yellow' },
+    { name: 'Other', emoji: '🎁', tone: 'violet' }
+  ];
+
+  // These are visual previews only. Real listings come from data.products.
+  const sampleProducts = [
+    { id: 'preview-car', name: 'Find your next car', category: 'Cars', price: null, image: '', emoji: '🚙', preview: true },
+    { id: 'preview-mobile', name: 'Explore mobile phones', category: 'Mobiles', price: null, image: '', emoji: '📱', preview: true },
+    { id: 'preview-electronics', name: 'Shop electronics', category: 'Electronics', price: null, image: '', emoji: '🎧', preview: true },
+    { id: 'preview-fashion', name: 'Discover fashion', category: 'Fashion', price: null, image: '', emoji: '👟', preview: true }
+  ];
+
+  let products = $derived(
+    Array.isArray(data.products) && data.products.length
+      ? data.products.map((p) => ({
+          id: p.id,
+          name: p.product_name ?? p.name ?? p.title ?? 'Marketplace item',
+          category: p.category ?? 'Other',
+          price: p.price ?? null,
+          image: p.image_url ?? p.image ?? '',
+          emoji: '🛍️',
+          preview: false
+        }))
+      : sampleProducts
+  );
+
+  let filteredProducts = $derived(
+    products.filter((p) => {
+      const categoryMatch = activeCategory === 'All' || p.category.toLowerCase() === activeCategory.toLowerCase();
+      const queryMatch = `${p.name} ${p.category}`.toLowerCase().includes(search.trim().toLowerCase());
+      return categoryMatch && queryMatch;
+    })
+  );
+
+  function closeMenu() {
+    menuOpen = false;
+  }
+</script>
+
+<svelte:head>
+  <title>4kaz Marketplace | Discover, Buy & Sell</title>
+  <meta name="description" content="Explore products, discover deals, and connect with sellers on 4kaz Marketplace." />
+</svelte:head>
+
+<div class="site-shell">
+  <header class="site-header">
+    <a class="logo" href={routes.home} aria-label="4kaz Marketplace home"><span>4</span>kaz<span class="logo-dot">.</span></a>
+    <nav class:open={menuOpen} class="navigation" aria-label="Main navigation">
+      <a href={routes.home} onclick={closeMenu}>Home</a>
+      <a href="#categories" onclick={closeMenu}>Categories</a>
+      <a href="#featured" onclick={closeMenu}>Explore</a>
+      <a href={routes.about} onclick={closeMenu}>About</a>
+      <a href={routes.contact} onclick={closeMenu}>Contact</a>
+      <a class="mobile-only" href={routes.login} onclick={closeMenu}>Log in</a>
+      <a class="mobile-only" href={routes.signup} onclick={closeMenu}>Register</a>
+    </nav>
+    <div class="header-actions">
+      <a class="login-link" href={routes.login}>Log in</a>
+      <a class="sell-btn" href={routes.sell}>+ Post an Ad</a>
+      <button class="menu-toggle" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}>
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div>
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="sparkle">✦</span> YOUR MARKETPLACE, YOUR POSSIBILITIES</span>
+        <h1 id="hero-title">Discover it.<br /><span>Love it.</span><br />Make it yours.</h1>
+        <p>Buy, sell, and discover amazing finds. From cars to gadgets and everything in between, your next great find starts here.</p>
+        <div class="hero-buttons">
+          <a class="primary-btn" href="#featured">Explore products <span aria-hidden="true">↗</span></a>
+          <a class="secondary-btn" href={routes.sell}>Start selling <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="hero-trust"><span>✨ Easy discovery</span><span>🤝 Connect with sellers</span><span>📱 Mobile friendly</span></div>
+      </div>
+      <div class="hero-art" aria-label="Colorful floating marketplace illustrations">
+        <div class="art-glow"></div>
+        <div class="floating-item car"><span>🚗</span><small>Cars</small></div>
+        <div class="floating-item phone"><span>📱</span><small>Phones</small></div>
+        <div class="floating-item shoes"><span>👟</span><small>Fashion</small></div>
+        <div class="floating-item laptop"><span>💻</span><small>Electronics</small></div>
+        <div class="center-bag"><span class="bag-handle"></span><strong>4kaz</strong><span class="bag-star">✦</span></div>
+        <div class="decor-star star-a">✦</div><div class="decor-star star-b">✳</div><div class="decor-star star-c">✦</div>
+      </div>
+    </section>
+
+    <section class="search-panel" aria-label="Search marketplace">
+      <div class="search-icon" aria-hidden="true">⌕</div>
+      <input type="search" placeholder="What are you looking for today?" aria-label="Search products" bind:value={search} />
+      <a href="#featured" class="search-button">Find products →</a>
+    </section>
+
+    <section class="section categories-section" id="categories">
+      <div class="section-heading"><div><span class="section-kicker">FIND YOUR FAVORITES</span><h2>Shop by <span>category</span></h2></div><a href="#featured">See products ↗</a></div>
+      <div class="category-grid">
+        {#each categories as category}
+          <button class:active={activeCategory === category.name} class="category-card {category.tone}" onclick={() => { activeCategory = category.name; document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' }); }}>
+            <span class="category-emoji">{category.emoji}</span><strong>{category.name}</strong><span class="category-arrow">↗</span>
+          </button>
+        {/each}
+      </div>
+    </section>
+
+    <section class="promo-grid" aria-label="Marketplace highlights">
+      <div class="promo-card promo-purple"><div><span>SELL SOMETHING?</span><h3>Turn your items<br />into opportunities.</h3><a href={routes.sell}>Post your ad →</a></div><span class="promo-illustration">📦</span></div>
+      <div class="promo-card promo-peach"><div><span>NEW HERE?</span><h3>Join the 4kaz<br />community today.</h3><a href={routes.signup}>Create an account →</a></div><span class="promo-illustration">🎉</span></div>
+    </section>
+
+    <section class="section featured-section" id="featured">
+      <div class="section-heading"><div><span class="section-kicker">CURATED FOR YOU</span><h2>Explore <span>listings</span></h2></div><span class="listing-count">{filteredProducts.length} {products === sampleProducts ? 'previews' : 'items'}</span></div>
+      {#if filteredProducts.length}
+        <div class="product-grid">
+          {#each filteredProducts as product (product.id)}
+            <article class="product-card">
+              <div class="product-image">
+                {#if product.image}<img src={product.image} alt={product.name} loading="lazy" />{:else}<span aria-hidden="true">{product.emoji}</span>{/if}
+                <span class="product-badge">{product.preview ? 'Explore category' : 'Listing'}</span>
+              </div>
+              <div class="product-details"><span class="product-category">{product.category}</span><h3>{product.name}</h3><div class="product-bottom"><strong>{product.price != null ? `ETB ${Number(product.price).toLocaleString()}` : product.preview ? 'Browse now' : 'Ask seller'}</strong><a aria-label={`View ${product.name}`} href={product.preview ? (product.category === 'Cars' ? '/cars' : product.category === 'Mobiles' ? '/mobile' : product.category === 'Electronics' ? '/electronics' : '#categories') : `/product/${encodeURIComponent(product.id)}`}>↗</a></div></div>
+            </article>
+          {/each}
+        </div>
+      {:else}
+        <div class="empty-state">🔎 No listings match your search. Try another keyword or category.</div>
+      {/if}
+    </section>
+
+    <section class="join-banner"><div><span>YOUR NEXT CHAPTER STARTS HERE</span><h2>Have something great to sell?</h2><p>Create a listing and reach people exploring 4kaz Marketplace.</p></div><a href={routes.sell}>Start selling ↗</a><span class="join-decoration">✳</span></section>
+  </main>
+  <footer class="footer"><a class="logo" href="/">4<span>kaz</span><span class="logo-dot">.</span></a><p>Discover more. Connect better.</p><div><a href={routes.about}>About</a><a href={routes.contact}>Contact</a><a href={routes.login}>Admin / Login</a></div><small>© {new Date().getFullYear()} 4kaz Marketplace</small></footer>
+</div>
+
+<style>
+  :global(*){box-sizing:border-box}
+  :global(html){scroll-behavior:smooth}
+  :global(body){margin:0;background:#faf9ff;color:#17203b;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  :global(button),:global(input){font:inherit}
+  :global(a){text-decoration:none;color:inherit}
+  :global(button){cursor:pointer}
+  :global(*:focus-visible){outline:3px solid #ffb627;outline-offset:3px}
+  .site-shell{overflow:hidden;min-height:100vh}
+  .site-header{height:84px;max-width:1250px;margin:auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;position:relative;z-index:20}
+  .logo{font-size:32px;font-weight:900;letter-spacing:-2px;color:#17203b;white-space:nowrap}.logo span:first-child,.logo-dot{color:#8b45ef}
+  .navigation,.header-actions{display:flex;align-items:center;gap:29px}.navigation a{font-weight:700;font-size:14px;transition:color .2s}.navigation a:hover{color:#9145ef}.header-actions{gap:16px}.login-link{font-weight:750;font-size:14px}.sell-btn,.primary-btn,.search-button{background:#822ff0;color:white;border-radius:14px;padding:13px 20px;font-weight:800;box-shadow:0 9px 22px #7f32e52b;transition:transform .2s,box-shadow .2s}.sell-btn:hover,.primary-btn:hover,.search-button:hover{transform:translateY(-3px);box-shadow:0 14px 28px #7f32e548}.menu-toggle,.mobile-only{display:none}
+  .hero{max-width:1250px;min-height:530px;margin:8px auto 0;border-radius:34px;background:linear-gradient(125deg,#6b34de 0%,#ae48e7 47%,#ff74ad 100%);display:grid;grid-template-columns:1.03fr 1fr;position:relative;isolation:isolate;overflow:hidden;padding:65px 60px;color:white}.hero:after{content:'';position:absolute;width:650px;height:650px;border:2px solid #ffffff28;border-radius:50%;right:-180px;top:-180px;z-index:-1}.hero-orb{position:absolute;border-radius:50%;filter:blur(2px);opacity:.25}.orb-one{width:240px;height:240px;background:#ffd45c;left:36%;bottom:-170px}.orb-two{width:150px;height:150px;background:#61e6ff;right:-40px;top:30px}.hero-copy{z-index:2}.eyebrow,.section-kicker{font-size:11px;font-weight:900;letter-spacing:2px}.eyebrow{display:inline-flex;gap:8px;align-items:center;background:#ffffff2b;border:1px solid #ffffff50;border-radius:40px;padding:10px 14px}.sparkle{color:#ffe86d}.hero h1{font-size:clamp(46px,5.4vw,74px);letter-spacing:-3.8px;line-height:1.04;margin:25px 0}.hero h1 span{color:#ffe67b}.hero p{font-size:16px;line-height:1.75;max-width:470px;color:#fffdf7}.hero-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.primary-btn{background:white;color:#7031d6}.secondary-btn{padding:13px 20px;border:1.5px solid #ffffff80;border-radius:14px;font-weight:800}.hero-trust{display:flex;flex-wrap:wrap;gap:15px;margin-top:37px;font-size:11px;font-weight:750}.hero-art{min-height:390px;position:relative;display:grid;place-items:center}.art-glow{width:330px;height:330px;background:#ffd6ff4f;border-radius:50%;position:absolute;filter:blur(24px);animation:pulse 5s ease-in-out infinite}.center-bag{width:205px;height:215px;background:linear-gradient(145deg,#ffdf64,#ffab43);border-radius:28px 28px 38px 38px;transform:rotate(-9deg);box-shadow:18px 27px 0 #a73c9c55,0 30px 65px #48207370;display:grid;place-items:center;position:relative;animation:float 5s ease-in-out infinite}.center-bag strong{font-size:55px;letter-spacing:-4px;color:#7735dc;text-shadow:2px 4px #fff6}.bag-handle{position:absolute;width:94px;height:74px;border:14px solid #ffdf64;border-radius:60px 60px 0 0;top:-50px}.bag-star{position:absolute;right:20px;bottom:10px;font-size:40px;color:white}.floating-item{position:absolute;width:118px;height:118px;background:#ffffffed;color:#30314b;border-radius:26px;box-shadow:0 18px 35px #44206942;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;animation:float 4s ease-in-out infinite}.floating-item span{font-size:54px}.floating-item small{font-weight:900}.car{left:4%;top:2%;transform:rotate(-12deg);animation-delay:-1s}.phone{right:0;top:2%;transform:rotate(12deg);animation-delay:-2s}.shoes{left:1%;bottom:0;transform:rotate(9deg);animation-delay:-3s}.laptop{right:1%;bottom:0;transform:rotate(-8deg);animation-delay:-1.5s}.decor-star{position:absolute;font-size:36px;color:#ffe777;animation:twinkle 3s infinite}.star-a{top:1%;left:48%}.star-b{bottom:12%;left:37%}.star-c{right:20%;top:48%}
+  .search-panel{max-width:1000px;margin:-27px auto 0;position:relative;z-index:5;display:flex;align-items:center;gap:15px;padding:12px 14px 12px 25px;background:white;border-radius:20px;box-shadow:0 18px 45px #30245220}.search-icon{font-size:32px;color:#8c46e9}.search-panel input{flex:1;min-width:0;border:0;outline:0;padding:12px 0;color:#22283b}.search-button{white-space:nowrap}
+  .section,.promo-grid,.join-banner{max-width:1200px;margin:85px auto 0;padding-left:18px;padding-right:18px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:28px}.section-kicker{color:#9a4af0}.section-heading h2{font-size:clamp(29px,3.5vw,42px);letter-spacing:-1.8px;margin:9px 0 0}.section-heading h2 span{color:#9243e9}.section-heading>a{font-size:13px;color:#8b3fe4;font-weight:800}.category-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px}.category-card{border:2px solid transparent;border-radius:23px;padding:20px 10px 13px;min-height:150px;display:flex;align-items:center;flex-direction:column;gap:12px;transition:transform .25s,border-color .25s,box-shadow .25s}.category-card:hover{transform:translateY(-8px);box-shadow:0 15px 28px #40336c18}.category-card.active{border-color:#863ce9}.category-emoji{font-size:47px;filter:drop-shadow(0 7px 5px #00000015)}.category-card strong{font-size:13px}.category-arrow{font-weight:900;font-size:17px;align-self:flex-end}.violet{background:#eee6ff}.orange{background:#ffebd7}.pink{background:#ffe2ed}.blue{background:#e0efff}.green{background:#ddf9e7}.yellow{background:#fff3cd}
+  .promo-grid{margin-top:55px;display:grid;grid-template-columns:1fr 1fr;gap:20px}.promo-card{min-height:225px;padding:30px 34px;border-radius:25px;display:flex;justify-content:space-between;align-items:center;overflow:hidden;position:relative}.promo-purple{background:#e9ddff}.promo-peach{background:#ffe3d3}.promo-card>div{z-index:1}.promo-card div>span,.join-banner div>span{font-size:11px;font-weight:900;letter-spacing:1.5px;color:#8a40d9}.promo-card h3{font-size:25px;line-height:1.2;letter-spacing:-1px;margin:12px 0 19px}.promo-card a{font-weight:850;font-size:13px;color:#7434cc}.promo-illustration{font-size:105px;transform:rotate(-12deg);animation:float 5s ease-in-out infinite}
+  .featured-section{margin-top:80px}.listing-count{font-size:13px;font-weight:800;color:#777}.product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}.product-card{background:white;border:1px solid #eeeaf6;border-radius:23px;overflow:hidden;box-shadow:0 8px 26px #3024520b;transition:transform .25s,box-shadow .25s}.product-card:hover{transform:translateY(-8px);box-shadow:0 22px 36px #30245220}.product-image{height:210px;background:linear-gradient(135deg,#f1e9ff,#ffe7f2);position:relative;display:grid;place-items:center}.product-image>span:not(.product-badge){font-size:100px}.product-image img{width:100%;height:100%;object-fit:cover;transition:transform .3s}.product-card:hover .product-image img{transform:scale(1.06)}.product-badge{position:absolute;top:14px;left:14px;background:white;padding:7px 10px;border-radius:10px;font-size:10px;font-weight:900;color:#7d38d8}.product-details{padding:18px}.product-category{font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:900;color:#9a4af0}.product-details h3{font-size:17px;line-height:1.35;min-height:46px;margin:9px 0 18px}.product-bottom{display:flex;justify-content:space-between;align-items:center;gap:6px}.product-bottom strong{font-size:15px}.product-bottom a{width:36px;height:36px;background:#8137e9;color:white;display:grid;place-items:center;border-radius:12px;font-size:20px}.empty-state{text-align:center;padding:55px 20px;background:#f0eaff;border-radius:20px}
+  .join-banner{margin-top:85px;margin-bottom:70px;background:linear-gradient(115deg,#ffb347,#ff72a6 60%,#a452f5);padding:42px 50px;border-radius:28px;display:flex;align-items:center;justify-content:space-between;gap:30px;position:relative;overflow:hidden}.join-banner div,.join-banner>a{position:relative;z-index:1}.join-banner div>span{color:#572c76}.join-banner h2{font-size:35px;letter-spacing:-1.5px;margin:10px 0}.join-banner p{margin:0;font-size:14px}.join-banner>a{background:white;color:#7a36d5;padding:16px 23px;border-radius:14px;font-weight:900;white-space:nowrap}.join-decoration{position:absolute;right:15%;top:-100px;font-size:280px;color:#ffffff24;pointer-events:none}.footer{border-top:1px solid #e8e3f1;padding:35px max(28px,calc((100vw - 1200px)/2));display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}.footer .logo{font-size:25px}.footer p,.footer small{font-size:12px;color:#7c7b87}.footer div{display:flex;gap:18px;font-size:12px;font-weight:750}
+  @keyframes float{0%,100%{translate:0 0}50%{translate:0 -14px}}@keyframes pulse{0%,100%{scale:1}50%{scale:1.12}}@keyframes twinkle{0%,100%{opacity:.5;scale:.9}50%{opacity:1;scale:1.2}}
+  @media(max-width:1000px){.hero{margin:8px 16px 0;padding:50px 35px}.hero h1{font-size:54px}.floating-item{width:95px;height:95px}.floating-item span{font-size:40px}.category-grid{grid-template-columns:repeat(4,1fr)}.search-panel{margin-left:35px;margin-right:35px}.section,.promo-grid,.join-banner{margin-left:16px;margin-right:16px}.product-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:700px){.site-header{height:70px;padding:0 18px}.logo{font-size:29px}.login-link{display:none}.header-actions{gap:10px}.sell-btn{padding:10px 12px;font-size:12px}.menu-toggle{display:flex;flex-direction:column;justify-content:center;gap:5px;background:white;border:1px solid #e9e0f5;border-radius:11px;width:43px;height:43px;align-items:center}.menu-toggle span{width:21px;height:2px;background:#6331b4;border-radius:4px}.navigation{display:none;position:absolute;left:14px;right:14px;top:65px;background:white;box-shadow:0 18px 38px #26144930;border-radius:18px;padding:18px;flex-direction:column;align-items:stretch;gap:0}.navigation.open{display:flex}.navigation a{padding:13px;border-bottom:1px solid #f2eef9}.mobile-only{display:block}.hero{grid-template-columns:1fr;padding:35px 25px 18px;min-height:0;border-radius:25px}.hero h1{font-size:clamp(44px,10vw,63px);letter-spacing:-2.5px}.hero p{font-size:14px}.hero-trust{gap:9px;font-size:10px;margin-top:24px}.hero-art{min-height:320px;margin-top:40px}.center-bag{width:150px;height:170px}.center-bag strong{font-size:42px}.bag-handle{width:70px;height:55px;top:-39px}.floating-item{width:86px;height:86px;border-radius:18px}.floating-item span{font-size:37px}.floating-item small{font-size:10px}.search-panel{margin:-10px 24px 0;padding:9px 10px 9px 15px;gap:6px}.search-panel input{font-size:12px}.search-button{font-size:11px;padding:11px 9px}.section{margin-top:58px}.section-heading h2{font-size:30px}.category-grid{grid-template-columns:repeat(3,1fr);gap:10px}.category-card{min-height:120px;padding:13px 5px 8px;border-radius:17px}.category-emoji{font-size:36px}.category-card strong{font-size:11px}.promo-grid{grid-template-columns:1fr;margin-top:38px}.promo-card{min-height:180px;padding:23px}.promo-card h3{font-size:23px}.promo-illustration{font-size:80px}.product-grid{gap:12px}.product-image{height:155px}.product-image>span:not(.product-badge){font-size:65px}.product-details{padding:12px}.product-details h3{font-size:14px}.product-bottom strong{font-size:12px}.product-badge{font-size:9px}.join-banner{margin-top:60px;padding:30px 25px;flex-direction:column;align-items:flex-start}.join-banner h2{font-size:28px}.footer{padding:30px 20px}}
+  @media(max-width:390px){.product-grid{grid-template-columns:1fr 1fr}.product-image{height:130px}.search-button{font-size:0}.search-button:after{content:'→';font-size:17px}.hero-buttons a{font-size:12px;padding:12px}.hero-art{min-height:285px}}
+  @media(prefers-reduced-motion:reduce){:global(*),:global(*::before),:global(*::after){animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>

@@ -5,40 +5,53 @@
   import { supabase } from '$lib/supabase.js';
 
   let loading = $state(true);
+  /** @type {{
+ *   seller_type?: string;
+ *   verification_status?: string;
+ *   full_name?: string;
+ *   company_name?: string;
+ *   phone?: string;
+ *   city?: string;
+ *   address?: string;
+ * } | null} */
+  let seller = $state(null);
+  let email = $state('');
   let errorMessage = $state('');
-/** @type {{
-  id: string,
-  verification_status: string,
-  seller_type: string,
-  full_name: string | null,
-  company_name: string | null,
-  phone: string | null,
-  city: string | null,
-  address: string | null
-} | null} */
-let seller = $state(null);
+
   onMount(() => {
-    loadSeller();
+    loadDashboard();
   });
 
-  async function loadSeller() {
+  async function loadDashboard() {
     loading = true;
     errorMessage = '';
 
     try {
-      const { data: authData, error: authError } =
-        await supabase.auth.getUser();
+      const { data: sessionData, error: sessionError } =
+  await supabase.auth.getSession();
 
-      if (authError || !authData.user) {
+if (sessionError) throw sessionError;
+
+if (!sessionData.session) {
+  await goto('/login');
+  return;
+}
+
+const { data: authData, error: authError } =
+  await supabase.auth.getUser();
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
         await goto('/login');
         return;
       }
 
+      email = authData.user.email ?? '';
+
       const { data, error } = await supabase
         .from('seller_profiles')
-        .select(
-          'id, seller_type, full_name, company_name, phone, city, address, verification_status'
-        )
+        .select('*')
         .eq('id', authData.user.id)
         .single();
 
@@ -49,86 +62,145 @@ let seller = $state(null);
       errorMessage =
         error instanceof Error
           ? error.message
-          : 'Unable to load seller profile.';
+          : 'Unable to load your dashboard.';
     } finally {
       loading = false;
     }
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      errorMessage = error.message;
+      return;
+    }
+
     await goto('/login');
+  }
+
+  function sellProduct() {
+    goto('/sell');
   }
 </script>
 
 <svelte:head>
   <title>Seller Dashboard | 4KAZ Marketplace</title>
+  <meta
+    name="description"
+    content="Manage your seller account on 4KAZ Marketplace."
+  />
 </svelte:head>
 
-<main>
-  <header>
-    <div class="brand">4KAZ Marketplace</div>
-    <button class="logout" onclick={logout}>Logout</button>
-  </header>
-
+<main class="dashboard">
   <div class="container">
+    <header class="header">
+      <a href="/" class="brand">4KAZ Marketplace</a>
+
+      <button class="logout" onclick={logout}>
+        Logout
+      </button>
+    </header>
+
     {#if loading}
-      <p>Loading seller dashboard...</p>
+      <div class="panel">
+        <p>Loading your dashboard...</p>
+      </div>
     {:else if errorMessage}
-      <div class="error" role="alert">{errorMessage}</div>
+      <div class="panel error" role="alert">
+        <h2>Unable to load dashboard</h2>
+        <p>{errorMessage}</p>
+        <a href="/login">Go to Login</a>
+      </div>
     {:else if seller}
-      <h1>Seller Dashboard</h1>
-      <p class="subtitle">
-        Welcome to your 4KAZ Marketplace account.
-      </p>
-
-      <section class="profile">
-        <div class="profile-header">
-          <h2>
-            {seller.seller_type === 'company'
-              ? seller.company_name
-              : seller.full_name}
-          </h2>
-
-          <span class:verified={seller.verification_status === 'verified'}
-                class:pending={seller.verification_status === 'pending'}
-                class:rejected={seller.verification_status === 'rejected'}>
-            {seller.verification_status}
-          </span>
+      <section class="welcome">
+        <div>
+          <p class="eyebrow">SELLER ACCOUNT</p>
+          <h1>Welcome to your Dashboard</h1>
+          <p>
+            Manage your account and submit products
+            to 4KAZ Marketplace.
+          </p>
         </div>
 
-        <p><strong>Seller type:</strong> {seller.seller_type}</p>
-        <p><strong>Phone:</strong> {seller.phone || 'Not provided'}</p>
-        <p><strong>City:</strong> {seller.city || 'Not provided'}</p>
-        <p><strong>Address:</strong> {seller.address || 'Not provided'}</p>
+        <span class="account-badge">
+          Registered Seller
+        </span>
       </section>
 
-      {#if seller.verification_status === 'verified'}
-        <div class="success">
-          ✓ Your seller account has been verified.
-          You can now proceed with product registration.
-        </div>
+      <div class="grid">
+        <section class="panel">
+          <h2>Account Information</h2>
 
-        <div class="actions">
-          <a class="primary" href="/sell">
-            + Register a Product
-          </a>
-          <a class="secondary" href="/">
-            Browse Marketplace
-          </a>
-        </div>
-      {:else if seller.verification_status === 'pending'}
-        <div class="notice">
-          Your account is awaiting administrator verification.
-        </div>
-      {:else if seller.verification_status === 'rejected'}
-        <div class="error">
-          Your seller application was rejected.
-          Please contact marketplace support.
-        </div>
-      {/if}
+          <div class="detail">
+            <span>Email</span>
+            <strong>{email}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Seller Type</span>
+            <strong>
+              {seller.seller_type ?? 'Individual'}
+            </strong>
+          </div>
+
+          <div class="detail">
+            <span>Verification Status</span>
+
+            {#if seller.verification_status === 'verified'}
+              <strong class="verified">Verified Seller</strong>
+            {:else if seller.verification_status === 'rejected'}
+              <strong class="rejected">Verification Rejected</strong>
+            {:else}
+              <strong class="pending">Verification Pending</strong>
+            {/if}
+          </div>
+
+          <p class="note">
+            You can submit products without waiting for
+            identity verification. All listings still
+            require administrator approval.
+          </p>
+        </section>
+
+        <section class="panel action-panel">
+          <div class="action-icon">+</div>
+
+          <h2>Sell a Product</h2>
+
+          <p>
+            Advertise cars, mobile phones, electronics,
+            real estate, furniture, and other products.
+          </p>
+
+          <button
+            class="primary-button"
+            onclick={sellProduct}
+          >
+            + Add New Product
+          </button>
+
+          <p class="note">
+            Your listing will be reviewed before
+            appearing publicly.
+          </p>
+        </section>
+      </div>
+
+      <section class="panel bottom-panel">
+        <h2>Marketplace</h2>
+        <p>Explore products listed by other sellers.</p>
+
+        <a href="/products" class="secondary-button">
+          Browse Products →
+        </a>
+      </section>
     {:else}
-      <p>No seller profile found.</p>
+      <div class="panel">
+        <h2>Seller profile not found</h2>
+        <p>Please complete seller registration first.</p>
+        <a href="/signup">Register as Seller</a>
+      </div>
     {/if}
   </div>
 </main>
@@ -137,141 +209,218 @@ let seller = $state(null);
   :global(body) {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f3f5fb;
-    color: #14213d;
+    background: #f4f6fb;
   }
 
-  header {
-    background: white;
-    padding: 20px 6%;
+  .dashboard {
+    min-height: 100vh;
+    padding: 30px 20px 70px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: auto;
+  }
+
+  .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #e5e8f0;
+    margin-bottom: 35px;
+    gap: 15px;
   }
 
   .brand {
     font-size: 23px;
     font-weight: 900;
     color: #484df2;
+    text-decoration: none;
   }
 
   .logout {
-    background: #fee2e2;
-    color: #991b1b;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
+    padding: 11px 20px;
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 10px;
     font-weight: 700;
     cursor: pointer;
   }
 
-  .container {
-    max-width: 1000px;
-    margin: 50px auto;
-    padding: 0 20px;
-  }
-
-  h1 {
-    font-size: 34px;
-    margin-bottom: 10px;
-  }
-
-  .subtitle {
-    color: #64748b;
-    margin-bottom: 30px;
-  }
-
-  .profile {
-    background: white;
-    padding: 30px;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    margin-bottom: 25px;
-  }
-
-  .profile-header {
+  .welcome {
+    background: linear-gradient(
+      120deg,
+      #484df2,
+      #8257e5
+    );
+    border-radius: 22px;
+    padding: 35px;
+    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  h2 {
-    margin: 0;
-  }
-
-  .profile p {
-    line-height: 1.8;
-  }
-
-  span {
-    padding: 8px 15px;
-    border-radius: 30px;
-    text-transform: capitalize;
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .verified {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  .pending {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  .rejected {
-    background: #fee2e2;
-    color: #991b1b;
-  }
-
-  .success, .notice, .error {
-    padding: 20px;
-    border-radius: 12px;
+    gap: 20px;
     margin-bottom: 25px;
+  }
+
+  .welcome h1 {
+    font-size: 32px;
+    margin: 8px 0;
+  }
+
+  .welcome p {
     line-height: 1.6;
   }
 
-  .success {
-    background: #dcfce7;
-    color: #166534;
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
   }
 
-  .notice {
-    background: #fef3c7;
-    color: #92400e;
+  .account-badge {
+    background: #ffffff25;
+    border: 1px solid #ffffff50;
+    padding: 12px 18px;
+    border-radius: 30px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 25px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 18px;
+    padding: 30px;
+    box-shadow: 0 8px 25px #00000008;
+  }
+
+  .panel h2 {
+    margin-top: 0;
+    font-size: 22px;
+  }
+
+  .detail {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .detail span {
+    color: #666;
+  }
+
+  .detail strong {
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  .verified {
+    color: #16803c;
+  }
+
+  .pending {
+    color: #bd7800;
+  }
+
+  .rejected {
+    color: #c53030;
+  }
+
+  .note {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.7;
+    margin-top: 20px;
+  }
+
+  .action-panel {
+    text-align: center;
+  }
+
+  .action-icon {
+    width: 65px;
+    height: 65px;
+    background: #eef0ff;
+    color: #484df2;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+  }
+
+  .action-panel p {
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .primary-button {
+    background: #484df2;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 25px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+
+  .primary-button:hover {
+    background: #3539c9;
+  }
+
+  .bottom-panel {
+    margin-top: 25px;
+  }
+
+  .secondary-button {
+    display: inline-block;
+    padding: 13px 20px;
+    background: #eef0ff;
+    color: #484df2;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 800;
   }
 
   .error {
-    background: #fee2e2;
-    color: #991b1b;
+    color: #b42318;
   }
 
-  .actions {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
+  @media (max-width: 700px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
 
-  .actions a {
-    padding: 15px 24px;
-    border-radius: 10px;
-    font-weight: 700;
-    text-decoration: none;
-  }
+    .welcome {
+      flex-direction: column;
+      align-items: flex-start;
+    }
 
-  .primary {
-    background: #484df2;
-    color: white;
-  }
+    .welcome h1 {
+      font-size: 25px;
+    }
 
-  .secondary {
-    background: white;
-    color: #484df2;
-    border: 1px solid #dbe1ec;
+    .panel {
+      padding: 22px;
+    }
+
+    .detail {
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .detail strong {
+      text-align: left;
+    }
   }
 </style>
